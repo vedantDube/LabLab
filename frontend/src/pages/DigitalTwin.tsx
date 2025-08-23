@@ -156,533 +156,547 @@ const DigitalTwin: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          🔗 Digital Twin Carbon Simulator
-        </h1>
-        <p className="text-lg text-gray-600">
-          Create virtual facility models and simulate carbon reduction scenarios
-          with AI-powered insights
-        </p>
-      </motion.div>
-
-      {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-        {[
-          { id: "create", label: "Create Twin", icon: "🏗️" },
-          { id: "simulate", label: "Run Simulation", icon: "⚡" },
-          { id: "results", label: "View Results", icon: "📊" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-md font-medium transition-colors duration-200 ${
-              activeTab === tab.id
-                ? "bg-white text-blue-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            <span>{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Create Digital Twin Tab */}
-      {activeTab === "create" && (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-white rounded-xl shadow-lg p-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
         >
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Create Facility Digital Twin
-          </h2>
-
-          <form onSubmit={createDigitalTwin} className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Facility Type *
-                </label>
-                <select
-                  name="type"
-                  value={facilityData.type}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select facility type</option>
-                  {facilityTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Industry *
-                </label>
-                <select
-                  name="industry"
-                  value={facilityData.industry}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="">Select industry</option>
-                  {industries.map((industry) => (
-                    <option key={industry} value={industry}>
-                      {industry}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Size (sq ft) *
-                </label>
-                <input
-                  type="number"
-                  name="size_sqft"
-                  value={facilityData.size_sqft}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter facility size"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Operational Data */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Production Capacity (units/month)
-                </label>
-                <input
-                  type="number"
-                  name="production_capacity"
-                  value={facilityData.production_capacity}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter production capacity"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Energy Consumption (kWh/month) *
-                </label>
-                <input
-                  type="number"
-                  name="energy_kwh_month"
-                  value={facilityData.energy_kwh_month}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter monthly energy use"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Emissions (kg CO2/month)
-                </label>
-                <input
-                  type="number"
-                  name="current_emissions"
-                  value={facilityData.current_emissions}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter current emissions"
-                />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={facilityData.location}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="City, State/Country"
-              />
-            </div>
-
-            {/* Energy Systems */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-4">
-                Energy Systems
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {energySystems.map((system) => (
-                  <label
-                    key={system}
-                    className="flex items-center space-x-2 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={facilityData.energy_systems.includes(system)}
-                      onChange={() =>
-                        handleArrayChange("energy_systems", system)
-                      }
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{system}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Equipment */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-4">
-                Major Equipment
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {equipmentTypes.map((equipment) => (
-                  <label
-                    key={equipment}
-                    className="flex items-center space-x-2 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={facilityData.equipment.includes(equipment)}
-                      onChange={() => handleArrayChange("equipment", equipment)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-700">{equipment}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-end">
-              <motion.button
-                type="submit"
-                disabled={loading}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-              >
-                {loading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Creating with ChatGPT-5...</span>
-                  </div>
-                ) : (
-                  "Create Digital Twin"
-                )}
-              </motion.button>
-            </div>
-          </form>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            🔗 Digital Twin Carbon Simulator
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Create virtual facility models and simulate carbon reduction
+            scenarios with AI-powered insights
+          </p>
         </motion.div>
-      )}
 
-      {/* Simulation Tab */}
-      {activeTab === "simulate" && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="space-y-6"
-        >
-          {twinResult ? (
-            <>
-              {/* Twin Summary */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Digital Twin Summary
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-blue-800">Twin ID</h3>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {twinResult.twin_id}
-                    </p>
-                  </div>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-green-800">
-                      Baseline Emissions
-                    </h3>
-                    <p className="text-2xl font-bold text-green-600">
-                      {twinResult.baseline_model?.validated_emissions?.toLocaleString()}{" "}
-                      kg CO2/month
-                    </p>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-purple-800">
-                      Efficiency Score
-                    </h3>
-                    <p className="text-2xl font-bold text-purple-600">
-                      {twinResult.baseline_model?.energy_efficiency || "N/A"}
-                      /100
-                    </p>
-                  </div>
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          {[
+            { id: "create", label: "Create Twin", icon: "🏗️" },
+            { id: "simulate", label: "Run Simulation", icon: "⚡" },
+            { id: "results", label: "View Results", icon: "📊" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-md font-medium transition-colors duration-200 ${
+                activeTab === tab.id
+                  ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300"
+              }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Create Digital Twin Tab */}
+        {activeTab === "create" && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              Create Facility Digital Twin
+            </h2>
+
+            <form onSubmit={createDigitalTwin} className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Facility Type *
+                  </label>
+                  <select
+                    name="type"
+                    value={facilityData.type}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select facility type</option>
+                    {facilityTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Industry *
+                  </label>
+                  <select
+                    name="industry"
+                    value={facilityData.industry}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select industry</option>
+                    {industries.map((industry) => (
+                      <option key={industry} value={industry}>
+                        {industry}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Size (sq ft) *
+                  </label>
+                  <input
+                    type="number"
+                    name="size_sqft"
+                    value={facilityData.size_sqft}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter facility size"
+                    required
+                  />
                 </div>
               </div>
 
-              {/* Simulation Controls */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Run Carbon Optimization Scenarios
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  Test different optimization strategies to see their impact on
-                  carbon emissions and ROI
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
-                    <h3 className="font-medium text-blue-800">
-                      💡 LED Lighting Upgrade
-                    </h3>
-                    <p className="text-sm text-blue-600">
-                      15% energy efficiency improvement
-                    </p>
-                  </div>
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
-                    <h3 className="font-medium text-green-800">
-                      ☀️ Solar Panel Installation
-                    </h3>
-                    <p className="text-sm text-green-600">
-                      40% renewable energy adoption
-                    </p>
-                  </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
-                    <h3 className="font-medium text-purple-800">
-                      🌡️ HVAC Optimization
-                    </h3>
-                    <p className="text-sm text-purple-600">
-                      25% HVAC efficiency improvement
-                    </p>
-                  </div>
+              {/* Operational Data */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Production Capacity (units/month)
+                  </label>
+                  <input
+                    type="number"
+                    name="production_capacity"
+                    value={facilityData.production_capacity}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter production capacity"
+                  />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Energy Consumption (kWh/month) *
+                  </label>
+                  <input
+                    type="number"
+                    name="energy_kwh_month"
+                    value={facilityData.energy_kwh_month}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter monthly energy use"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Current Emissions (kg CO2/month)
+                  </label>
+                  <input
+                    type="number"
+                    name="current_emissions"
+                    value={facilityData.current_emissions}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter current emissions"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={facilityData.location}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="City, State/Country"
+                />
+              </div>
+
+              {/* Energy Systems */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                  Energy Systems
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {energySystems.map((system) => (
+                    <label
+                      key={system}
+                      className="flex items-center space-x-2 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={facilityData.energy_systems.includes(system)}
+                        onChange={() =>
+                          handleArrayChange("energy_systems", system)
+                        }
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {system}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Equipment */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                  Major Equipment
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {equipmentTypes.map((equipment) => (
+                    <label
+                      key={equipment}
+                      className="flex items-center space-x-2 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={facilityData.equipment.includes(equipment)}
+                        onChange={() =>
+                          handleArrayChange("equipment", equipment)
+                        }
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {equipment}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end">
                 <motion.button
-                  onClick={runSimulation}
+                  type="submit"
                   disabled={loading}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                 >
                   {loading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Running AI Simulation...</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Creating with ChatGPT-5...</span>
                     </div>
                   ) : (
-                    "🚀 Run Comprehensive Simulation"
+                    "Create Digital Twin"
                   )}
                 </motion.button>
               </div>
-            </>
-          ) : (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-              <h3 className="font-medium text-yellow-800 mb-2">
-                ⚠️ No Digital Twin Found
-              </h3>
-              <p className="text-yellow-700">
-                Please create a digital twin first in the "Create Twin" tab.
-              </p>
-            </div>
-          )}
-        </motion.div>
-      )}
+            </form>
+          </motion.div>
+        )}
 
-      {/* Results Tab */}
-      {activeTab === "results" && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
-          {simulationResults ? (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                🎯 Simulation Results
-              </h2>
+        {/* Simulation Tab */}
+        {activeTab === "simulate" && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-6"
+          >
+            {twinResult ? (
+              <>
+                {/* Twin Summary */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    Digital Twin Summary
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                      <h3 className="font-medium text-blue-800 dark:text-blue-400">
+                        Twin ID
+                      </h3>
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {twinResult.twin_id}
+                      </p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                      <h3 className="font-medium text-green-800">
+                        Baseline Emissions
+                      </h3>
+                      <p className="text-2xl font-bold text-green-600">
+                        {twinResult.baseline_model?.validated_emissions?.toLocaleString()}{" "}
+                        kg CO2/month
+                      </p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h3 className="font-medium text-purple-800">
+                        Efficiency Score
+                      </h3>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {twinResult.baseline_model?.energy_efficiency || "N/A"}
+                        /100
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-              {Object.entries(simulationResults.simulation_results || {}).map(
-                ([scenarioName, results]: [string, any]) => (
-                  <div
-                    key={scenarioName}
-                    className="bg-white rounded-xl shadow-lg p-6"
+                {/* Simulation Controls */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    Run Carbon Optimization Scenarios
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    Test different optimization strategies to see their impact
+                    on carbon emissions and ROI
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg">
+                      <h3 className="font-medium text-blue-800">
+                        💡 LED Lighting Upgrade
+                      </h3>
+                      <p className="text-sm text-blue-600">
+                        15% energy efficiency improvement
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg">
+                      <h3 className="font-medium text-green-800">
+                        ☀️ Solar Panel Installation
+                      </h3>
+                      <p className="text-sm text-green-600">
+                        40% renewable energy adoption
+                      </p>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg">
+                      <h3 className="font-medium text-purple-800">
+                        🌡️ HVAC Optimization
+                      </h3>
+                      <p className="text-sm text-purple-600">
+                        25% HVAC efficiency improvement
+                      </p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={runSimulation}
+                    disabled={loading}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="w-full py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                   >
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">
-                      {scenarioName}
-                    </h3>
+                    {loading ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Running AI Simulation...</span>
+                      </div>
+                    ) : (
+                      "🚀 Run Comprehensive Simulation"
+                    )}
+                  </motion.button>
+                </div>
+              </>
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <h3 className="font-medium text-yellow-800 mb-2">
+                  ⚠️ No Digital Twin Found
+                </h3>
+                <p className="text-yellow-700">
+                  Please create a digital twin first in the "Create Twin" tab.
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {/* Carbon Impact */}
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-green-800">
-                          Carbon Reduction
-                        </h4>
-                        <p className="text-2xl font-bold text-green-600">
-                          {results.carbon_impact?.percentage_reduction?.toFixed(
-                            1
-                          ) || "N/A"}
-                          %
-                        </p>
-                        <p className="text-sm text-green-600">
-                          {results.carbon_impact?.annual_reduction_kg_co2?.toLocaleString() ||
-                            "N/A"}{" "}
-                          kg CO2/year
-                        </p>
+        {/* Results Tab */}
+        {activeTab === "results" && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            {simulationResults ? (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  🎯 Simulation Results
+                </h2>
+
+                {Object.entries(simulationResults.simulation_results || {}).map(
+                  ([scenarioName, results]: [string, any]) => (
+                    <div
+                      key={scenarioName}
+                      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
+                    >
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                        {scenarioName}
+                      </h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Carbon Impact */}
+                        <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                          <h4 className="font-medium text-green-800">
+                            Carbon Reduction
+                          </h4>
+                          <p className="text-2xl font-bold text-green-600">
+                            {results.carbon_impact?.percentage_reduction?.toFixed(
+                              1
+                            ) || "N/A"}
+                            %
+                          </p>
+                          <p className="text-sm text-green-600">
+                            {results.carbon_impact?.annual_reduction_kg_co2?.toLocaleString() ||
+                              "N/A"}{" "}
+                            kg CO2/year
+                          </p>
+                        </div>
+
+                        {/* ROI */}
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-medium text-blue-800">ROI</h4>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {results.financial_analysis?.net_roi_percentage?.toFixed(
+                              1
+                            ) || "N/A"}
+                            %
+                          </p>
+                          <p className="text-sm text-blue-600">
+                            {results.financial_analysis?.payback_months ||
+                              "N/A"}{" "}
+                            months payback
+                          </p>
+                        </div>
+
+                        {/* Implementation Cost */}
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <h4 className="font-medium text-purple-800">
+                            Investment
+                          </h4>
+                          <p className="text-2xl font-bold text-purple-600">
+                            $
+                            {results.financial_analysis?.implementation_cost?.toLocaleString() ||
+                              "N/A"}
+                          </p>
+                          <p className="text-sm text-purple-600">
+                            Initial cost
+                          </p>
+                        </div>
+
+                        {/* Risk Level */}
+                        <div
+                          className={`p-4 rounded-lg ${
+                            results.risk_assessment?.overall_risk === "LOW"
+                              ? "bg-green-50"
+                              : results.risk_assessment?.overall_risk ===
+                                "MEDIUM"
+                              ? "bg-yellow-50"
+                              : "bg-red-50"
+                          }`}
+                        >
+                          <h4
+                            className={`font-medium ${
+                              results.risk_assessment?.overall_risk === "LOW"
+                                ? "text-green-800"
+                                : results.risk_assessment?.overall_risk ===
+                                  "MEDIUM"
+                                ? "text-yellow-800"
+                                : "text-red-800"
+                            }`}
+                          >
+                            Risk Level
+                          </h4>
+                          <p
+                            className={`text-2xl font-bold ${
+                              results.risk_assessment?.overall_risk === "LOW"
+                                ? "text-green-600"
+                                : results.risk_assessment?.overall_risk ===
+                                  "MEDIUM"
+                                ? "text-yellow-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {results.risk_assessment?.overall_risk || "N/A"}
+                          </p>
+                        </div>
                       </div>
 
-                      {/* ROI */}
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-blue-800">ROI</h4>
-                        <p className="text-2xl font-bold text-blue-600">
-                          {results.financial_analysis?.net_roi_percentage?.toFixed(
-                            1
-                          ) || "N/A"}
-                          %
-                        </p>
-                        <p className="text-sm text-blue-600">
-                          {results.financial_analysis?.payback_months || "N/A"}{" "}
-                          months payback
-                        </p>
-                      </div>
-
-                      {/* Implementation Cost */}
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-purple-800">
-                          Investment
-                        </h4>
-                        <p className="text-2xl font-bold text-purple-600">
-                          $
-                          {results.financial_analysis?.implementation_cost?.toLocaleString() ||
-                            "N/A"}
-                        </p>
-                        <p className="text-sm text-purple-600">Initial cost</p>
-                      </div>
-
-                      {/* Risk Level */}
+                      {/* Recommendation */}
                       <div
-                        className={`p-4 rounded-lg ${
-                          results.risk_assessment?.overall_risk === "LOW"
-                            ? "bg-green-50"
-                            : results.risk_assessment?.overall_risk === "MEDIUM"
-                            ? "bg-yellow-50"
-                            : "bg-red-50"
+                        className={`mt-4 p-4 rounded-lg ${
+                          results.recommendation === "HIGHLY_RECOMMENDED"
+                            ? "bg-green-100 border border-green-200"
+                            : results.recommendation === "RECOMMENDED"
+                            ? "bg-blue-100 border border-blue-200"
+                            : results.recommendation === "CONSIDER"
+                            ? "bg-yellow-100 border border-yellow-200"
+                            : "bg-red-100 border border-red-200"
                         }`}
                       >
                         <h4
                           className={`font-medium ${
-                            results.risk_assessment?.overall_risk === "LOW"
+                            results.recommendation === "HIGHLY_RECOMMENDED"
                               ? "text-green-800"
-                              : results.risk_assessment?.overall_risk ===
-                                "MEDIUM"
+                              : results.recommendation === "RECOMMENDED"
+                              ? "text-blue-800"
+                              : results.recommendation === "CONSIDER"
                               ? "text-yellow-800"
                               : "text-red-800"
                           }`}
                         >
-                          Risk Level
+                          AI Recommendation:{" "}
+                          {results.recommendation?.replace(/_/g, " ") || "N/A"}
                         </h4>
-                        <p
-                          className={`text-2xl font-bold ${
-                            results.risk_assessment?.overall_risk === "LOW"
-                              ? "text-green-600"
-                              : results.risk_assessment?.overall_risk ===
-                                "MEDIUM"
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {results.risk_assessment?.overall_risk || "N/A"}
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* Comparative Analysis */}
+                {simulationResults.comparative_analysis && (
+                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                      📊 Comparative Analysis
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-gray-800 dark:text-gray-300">
+                          🏆 Best Overall Scenario
+                        </h4>
+                        <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                          {simulationResults.comparative_analysis.best_scenario}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-800 dark:text-white">
+                          💰 Highest ROI
+                        </h4>
+                        <p className="text-lg font-bold text-blue-600">
+                          {simulationResults.comparative_analysis.highest_roi}
                         </p>
                       </div>
                     </div>
-
-                    {/* Recommendation */}
-                    <div
-                      className={`mt-4 p-4 rounded-lg ${
-                        results.recommendation === "HIGHLY_RECOMMENDED"
-                          ? "bg-green-100 border border-green-200"
-                          : results.recommendation === "RECOMMENDED"
-                          ? "bg-blue-100 border border-blue-200"
-                          : results.recommendation === "CONSIDER"
-                          ? "bg-yellow-100 border border-yellow-200"
-                          : "bg-red-100 border border-red-200"
-                      }`}
-                    >
-                      <h4
-                        className={`font-medium ${
-                          results.recommendation === "HIGHLY_RECOMMENDED"
-                            ? "text-green-800"
-                            : results.recommendation === "RECOMMENDED"
-                            ? "text-blue-800"
-                            : results.recommendation === "CONSIDER"
-                            ? "text-yellow-800"
-                            : "text-red-800"
-                        }`}
-                      >
-                        AI Recommendation:{" "}
-                        {results.recommendation?.replace(/_/g, " ") || "N/A"}
-                      </h4>
-                    </div>
                   </div>
-                )
-              )}
-
-              {/* Comparative Analysis */}
-              {simulationResults.comparative_analysis && (
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
-                    📊 Comparative Analysis
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-gray-800">
-                        🏆 Best Overall Scenario
-                      </h4>
-                      <p className="text-lg font-bold text-green-600">
-                        {simulationResults.comparative_analysis.best_scenario}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-800">
-                        💰 Highest ROI
-                      </h4>
-                      <p className="text-lg font-bold text-blue-600">
-                        {simulationResults.comparative_analysis.highest_roi}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <h3 className="font-medium text-gray-800 mb-2">
-                📊 No Results Available
-              </h3>
-              <p className="text-gray-600">
-                Run a simulation first to see detailed results and AI
-                recommendations.
-              </p>
-            </div>
-          )}
-        </motion.div>
-      )}
+                )}
+              </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                <h3 className="font-medium text-gray-800 dark:text-white mb-2">
+                  📊 No Results Available
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Run a simulation first to see detailed results and AI
+                  recommendations.
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
