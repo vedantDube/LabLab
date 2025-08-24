@@ -47,7 +47,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Detect API key from OPENAI_API_KEY or fallback CHATGPT5_API_KEY
 OPENAI_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("CHATGPT5_API_KEY")
-OPENAI_TIMEOUT = int(os.getenv("OPENAI_REQUEST_TIMEOUT", "10"))  # seconds
+OPENAI_TIMEOUT = int(os.getenv("OPENAI_REQUEST_TIMEOUT", "1000"))  # seconds
 if OpenAI and OPENAI_KEY:
     openai_client = OpenAI(api_key=OPENAI_KEY)
     logger.info("OpenAI configured: True (key provided)")
@@ -233,7 +233,7 @@ class CarbonTwinCore:
             if self.ai_enabled():
                 logger.info("Verification: using OpenAI")
                 resp = openai_client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-5",
                     messages=[
                         {"role": "system", "content": "You are an expert carbon accounting auditor."},
                         {"role": "user", "content": prompt},
@@ -264,7 +264,7 @@ class CarbonTwinCore:
                 logger.info("Create twin: using OpenAI")
                 prompt = f"Create a digital twin JSON for: {json.dumps(facility_data)}"
                 resp = openai_client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-5",
                     messages=[
                         {"role": "system", "content": "You are an expert in digital twin and carbon modeling."},
                         {"role": "user", "content": prompt},
@@ -316,7 +316,7 @@ class CarbonTwinCore:
                 logger.info("Simulate: using OpenAI")
                 prompt = f"Simulate scenarios for twin: {json.dumps(twin_data)}; scenarios: {json.dumps(scenarios)}"
                 resp = openai_client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-5",
                     messages=[
                         {"role": "system", "content": "You are an expert in carbon optimization."},
                         {"role": "user", "content": prompt},
@@ -699,7 +699,7 @@ def verify_carbon_project():
         if core.ai_enabled():
             prompt = f"Verify carbon project: {json.dumps(project_data)}"
             resp = openai_client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-5",
                 messages=[
                     {"role": "system", "content": "You are an expert carbon project auditor."},
                     {"role": "user", "content": prompt},
