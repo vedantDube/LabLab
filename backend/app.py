@@ -236,9 +236,24 @@ class CarbonTwinCore:
     # AI helpers ---------------------------------------------------------------
     def verify_emission_report_with_ai(self, report_data: Dict) -> Dict:
         prompt = f"""
-        You are an expert carbon accounting auditor.
-        Analyze this report and return a JSON object with keys: verification_score (0-100), confidence_level, authenticity_rating, risk_level, red_flags[], accuracy_issues[], recommendations[], verified(bool), detailed_analysis, next_steps[].
-        Report: {json.dumps(report_data)}
+        You are an expert carbon accounting auditor. Analyze the provided emission report and return ONLY a valid JSON object with the following structure:
+
+        {{
+            "verification_score": (number 0-100),
+            "confidence_level": "(HIGH|MEDIUM|LOW)",
+            "authenticity_rating": "(AUTHENTIC|QUESTIONABLE|FRAUDULENT)",
+            "risk_level": "(LOW|MEDIUM|HIGH)",
+            "red_flags": ["list", "of", "issues"],
+            "accuracy_issues": ["list", "of", "accuracy", "problems"],
+            "recommendations": ["list", "of", "recommendations"],
+            "verified": (true or false),
+            "detailed_analysis": "detailed explanation text",
+            "next_steps": ["list", "of", "next", "steps"]
+        }}
+
+        Report data to analyze: {json.dumps(report_data)}
+
+        Respond with ONLY the JSON object, no additional text or explanations.
         """
         try:
             if self.ai_enabled():
@@ -255,9 +270,34 @@ class CarbonTwinCore:
                     max_tokens=1000,
                     timeout=OPENAI_TIMEOUT,
                 )
-                return json.loads(resp.choices[0].message.content)
+                ai_response = resp.choices[0].message.content
+                logger.info(f"AI response received: {ai_response[:200]}...")  # Log first 200 chars
+                
+                # Try to parse JSON response
+                try:
+                    return json.loads(ai_response)
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse AI response as JSON: {json_error}")
+                    logger.error(f"Raw AI response: {ai_response}")
+                    # Return a structured response based on the raw text
+                    return {
+                        "verification_score": 50,
+                        "confidence_level": "LOW",
+                        "authenticity_rating": "UNCERTAIN",
+                        "risk_level": "MEDIUM",
+                        "red_flags": ["AI response parsing error"],
+                        "accuracy_issues": ["JSON format issue"],
+                        "recommendations": ["Manual review required", "AI response format error"],
+                        "verified": False,
+                        "detailed_analysis": f"AI provided response but format was invalid: {ai_response[:500]}",
+                        "next_steps": ["Review AI response manually", "Check API configuration"],
+                        "raw_ai_response": ai_response
+                    }
         except Exception as e:
             logger.error(f"AI verification error: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
         return {
             "verification_score": 75,
             "confidence_level": "MEDIUM",
@@ -275,7 +315,38 @@ class CarbonTwinCore:
         try:
             if self.ai_enabled():
                 logger.info("Create twin: using OpenAI")
-                prompt = f"Create a digital twin JSON for: {json.dumps(facility_data)}"
+                prompt = f"""
+                You are an expert in digital twin and carbon modeling. Create a digital twin configuration for the provided facility data.
+                
+                Return ONLY a valid JSON object with this structure:
+                {{
+                    "twin_id": "unique_twin_identifier",
+                    "baseline_model": {{
+                        "validated_emissions": (number),
+                        "emission_sources": {{"source": percentage}},
+                        "energy_efficiency": (number 0-100),
+                        "carbon_intensity": (number)
+                    }},
+                    "monitoring_setup": {{
+                        "key_metrics": ["list", "of", "metrics"],
+                        "alert_thresholds": {{}},
+                        "update_frequency": "HOURLY|DAILY|WEEKLY"
+                    }},
+                    "simulation_parameters": {{
+                        "adjustable_variables": ["list"],
+                        "scenario_templates": ["list"],
+                        "prediction_accuracy": "percentage"
+                    }},
+                    "recommendations": ["list", "of", "recommendations"],
+                    "estimated_setup_time": "time estimate",
+                    "confidence_score": (number 0-100)
+                }}
+                
+                Facility data: {json.dumps(facility_data)}
+                
+                Respond with ONLY the JSON object, no additional text.
+                """
+                
                 resp = openai_client.chat.completions.create(
                     model="openai/gpt-5-chat-latest",
                     messages=[
@@ -288,7 +359,16 @@ class CarbonTwinCore:
                     max_tokens=1200,
                     timeout=OPENAI_TIMEOUT,
                 )
-                twin_result = json.loads(resp.choices[0].message.content)
+                
+                ai_response = resp.choices[0].message.content
+                logger.info(f"Digital twin AI response: {ai_response[:200]}...")
+                
+                try:
+                    twin_result = json.loads(ai_response)
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse digital twin AI response: {json_error}")
+                    logger.error(f"Raw response: {ai_response}")
+                    raise RuntimeError(f"AI response parsing error: {json_error}")
             else:
                 raise RuntimeError("OpenAI not configured")
         except Exception as e:
