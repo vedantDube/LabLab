@@ -17,7 +17,7 @@ eventlet==0.33.3
 numpy==1.24.3
 
 # AI and API dependencies
-openai==0.28.1
+openai>=1.0.0
 
 # Blockchain dependencies
 web3==6.9.0
