@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="CarbonTwin - AI-Powered Carbon Management Platform combining blockchain transparency with digital twin simulation"
+    />
+    <meta
+      name="keywords"
+      content="carbon management, AI, blockchain, digital twin, sustainability, ESG"
+    />
+    <meta name="author" content="CarbonTwin Team" />
+
+    <!-- Open Graph Meta Tags -->
+    <meta
+      property="og:title"
+      content="CarbonTwin - AI-Powered Carbon Management Platform"
+    />
+    <meta
+      property="og:description"
+      content="Track, verify, and optimize carbon emissions with blockchain transparency and AI-powered insights"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://carbontwin.com" />
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="CarbonTwin - AI-Powered Carbon Management Platform"
+    />
+    <meta
+      name="twitter:description"
+      content="Track, verify, and optimize carbon emissions with blockchain transparency and AI-powered insights"
+    />
+
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>CarbonTwin - AI-Powered Carbon Management Platform</title>
+
+    <style>
+      /* Loading screen styles */
+      .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        font-family: "Inter", sans-serif;
+      }
+
+      .loading-content {
+        text-align: center;
+        color: white;
+      }
+
+      .loading-logo {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 32px;
+        font-weight: bold;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+      <div class="loading-content">
+        <div class="loading-logo">CT</div>
+        <h1 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 600">
+          CarbonTwin
+        </h1>
+        <p style="margin: 0 0 20px 0; opacity: 0.8">
+          AI-Powered Carbon Management Platform
+        </p>
+        <div class="loading-spinner"></div>
+        <p style="margin: 0; font-size: 14px; opacity: 0.7">
+          Loading ChatGPT-5 Intelligence...
+        </p>
+      </div>
+    </div>
+
+    <div id="root"></div>
+
+    <script>
+      // Hide loading screen when React app loads
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          const loadingScreen = document.getElementById("loading-screen");
+          if (loadingScreen) {
+            loadingScreen.style.opacity = "0";
+            loadingScreen.style.transition = "opacity 0.5s ease-out";
+            setTimeout(function () {
+              loadingScreen.style.display = "none";
+            }, 500);
+          }
+        }, 1000); // Show loading for at least 1 second
+      });
+    </script>
+  </body>
+</html>

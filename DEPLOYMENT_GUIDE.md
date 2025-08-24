@@ -1,6 +1,7 @@
 # CarbonTwin Deployment Guide
 
 ## 🌐 Deployment Architecture
+
 - **Frontend**: Vercel (React app)
 - **Backend**: Railway/Render (Python Flask API)
 - **Database**: PostgreSQL (Railway/Render) or SQLite (simple option)
@@ -8,6 +9,7 @@
 - **Blockchain**: Ethereum via Infura
 
 ## 📋 Prerequisites Checklist
+
 - [ ] GitHub repository with latest code
 - [ ] Clerk account with publishable and secret keys
 - [ ] Infura account for Ethereum connectivity
@@ -18,12 +20,14 @@
 ## 🎯 **STEP 1: Deploy Backend (Python API)**
 
 ### Option A: Railway (Recommended)
+
 1. **Sign up**: Go to [railway.app](https://railway.app)
 2. **Connect GitHub**: Link your repository
 3. **Deploy**: Select your repo → Choose `backend` folder
 4. **Environment Variables**: Add all backend .env variables in Railway dashboard
 
 ### Option B: Render
+
 1. **Sign up**: Go to [render.com](https://render.com)
 2. **New Web Service**: Connect GitHub → Select repo
 3. **Settings**:
@@ -32,6 +36,7 @@
    - Root Directory: `backend`
 
 ### Backend Environment Variables (Railway/Render):
+
 ```bash
 CLERK_SECRET_KEY=sk_test_your_clerk_secret_key_here
 CHATGPT5_API_KEY=7b539a42e26f42e6a62c4f64ae4ded71
@@ -51,6 +56,7 @@ CONTRACT_ADDRESS=your_deployed_contract_address
 ## 🎯 **STEP 2: Deploy Frontend (React App)**
 
 ### Vercel Deployment (Recommended)
+
 1. **Sign up**: Go to [vercel.com](https://vercel.com)
 2. **Import Project**: Connect GitHub → Select your repository
 3. **Framework**: Auto-detected as Create React App
@@ -61,6 +67,7 @@ CONTRACT_ADDRESS=your_deployed_contract_address
    - Install Command: `npm install`
 
 ### Frontend Environment Variables (Vercel):
+
 ```bash
 REACT_APP_API_URL=https://your-backend-url.railway.app
 REACT_APP_CLERK_PUBLISHABLE_KEY=pk_test_cHJpbWFyeS1zY29ycGlvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk
@@ -76,10 +83,12 @@ REACT_APP_CONTRACT_ADDRESS=your_deployed_contract_address_here
 ## 🎯 **STEP 3: Configure Domain & SSL**
 
 ### Vercel (Frontend)
+
 - Custom domain: Add in Vercel dashboard
 - SSL: Automatically provided
 
 ### Railway/Render (Backend)
+
 - Custom domain: Available in dashboard
 - SSL: Automatically provided
 
@@ -88,10 +97,12 @@ REACT_APP_CONTRACT_ADDRESS=your_deployed_contract_address_here
 ## 🎯 **STEP 4: Database Setup**
 
 ### Option A: Railway PostgreSQL
+
 1. Add PostgreSQL service in Railway
 2. Copy connection string to `DATABASE_URL`
 
 ### Option B: Keep SQLite (Simple)
+
 - No changes needed
 - Database file will be created automatically
 
@@ -100,16 +111,20 @@ REACT_APP_CONTRACT_ADDRESS=your_deployed_contract_address_here
 ## 🎯 **STEP 5: Post-Deployment Setup**
 
 ### 1. Update CORS Settings
+
 Ensure backend allows your frontend domain:
+
 ```python
 CORS(app, origins=["https://your-frontend-domain.vercel.app"])
 ```
 
 ### 2. Update Clerk Settings
+
 - Add your production domains to Clerk dashboard
 - Update redirect URLs
 
 ### 3. Test Authentication
+
 - Sign up/Sign in flow
 - API connectivity
 - Blockchain features (if implemented)
@@ -119,17 +134,19 @@ CORS(app, origins=["https://your-frontend-domain.vercel.app"])
 ## 🔧 **Deployment Commands**
 
 ### Local Development
+
 ```bash
 # Backend
 cd backend
 python app.py
 
-# Frontend  
+# Frontend
 cd frontend
 npm start
 ```
 
 ### Production Build Test
+
 ```bash
 # Frontend
 cd frontend
@@ -152,6 +169,7 @@ npx serve -s build
 ## 📊 **Cost Estimates**
 
 ### Free Tier Limits:
+
 - **Vercel**: 100GB bandwidth/month
 - **Railway**: $5/month for starter plan
 - **Render**: Free tier available
@@ -163,6 +181,7 @@ npx serve -s build
 ## 🐛 **Troubleshooting**
 
 ### Common Issues:
+
 1. **CORS errors**: Check backend CORS configuration
 2. **Build failures**: Check package.json and dependencies
 3. **Environment variables**: Ensure all required vars are set
@@ -170,6 +189,7 @@ npx serve -s build
 5. **Authentication issues**: Check Clerk domain settings
 
 ### Debugging Steps:
+
 1. Check deployment logs in platform dashboards
 2. Test API endpoints directly
 3. Verify environment variables are loaded
