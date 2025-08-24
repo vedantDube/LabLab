@@ -137,7 +137,11 @@ class CarbonTwinCore:
 
     # DB ----------------------------------------------------------------------
     def _init_db(self) -> None:
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30.0)
+        # Enable WAL mode for better concurrent access
+        conn.execute("PRAGMA journal_mode = WAL")
+        conn.execute("PRAGMA busy_timeout = 30000")
+        conn.execute("PRAGMA synchronous = NORMAL")
         cur = conn.cursor()
         cur.executescript(
             """
@@ -194,38 +198,71 @@ class CarbonTwinCore:
         conn.close()
 
     def store_digital_twin(self, twin_data: Dict, facility_data: Dict) -> None:
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        cur = conn.cursor()
-        baseline_emissions = self._safe_float(
-            (twin_data.get("baseline_model") or {}).get("validated_emissions"), 0.0
-        )
-        size_sqft = self._safe_float(facility_data.get("size_sqft"), 0.0)
-        cur.execute(
-            """
-            INSERT INTO digital_twins (twin_id, facility_type, size_sqft, baseline_emissions, current_metrics)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                twin_data["twin_id"],
-                facility_data.get("type", "Unknown"),
-                size_sqft,
-                baseline_emissions,
-                json.dumps(twin_data),
-            ),
-        )
-        conn.commit()
-        conn.close()
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30.0)
+                conn.execute("PRAGMA busy_timeout = 30000")  # 30 second timeout
+                cur = conn.cursor()
+                baseline_emissions = self._safe_float(
+                    (twin_data.get("baseline_model") or {}).get("validated_emissions"), 0.0
+                )
+                size_sqft = self._safe_float(facility_data.get("size_sqft"), 0.0)
+                cur.execute(
+                    """
+                    INSERT INTO digital_twins (twin_id, facility_type, size_sqft, baseline_emissions, current_metrics)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        twin_data["twin_id"],
+                        facility_data.get("type", "Unknown"),
+                        size_sqft,
+                        baseline_emissions,
+                        json.dumps(twin_data),
+                    ),
+                )
+                conn.commit()
+                conn.close()
+                return  # Success, exit retry loop
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < max_retries - 1:
+                    logger.warning(f"Database locked, retrying in {0.5 * (attempt + 1)} seconds...")
+                    time.sleep(0.5 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    raise e
+            except Exception as e:
+                if conn:
+                    conn.close()
+                raise e
 
     def get_digital_twin(self, twin_id: str) -> Dict | None:
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT current_metrics FROM digital_twins WHERE twin_id = ?",
-            (twin_id,),
-        )
-        row = cur.fetchone()
-        conn.close()
-        return json.loads(row[0]) if row else None
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30.0)
+                conn.execute("PRAGMA busy_timeout = 30000")
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT current_metrics FROM digital_twins WHERE twin_id = ?",
+                    (twin_id,),
+                )
+                row = cur.fetchone()
+                conn.close()
+                return json.loads(row[0]) if row else None
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < max_retries - 1:
+                    logger.warning(f"Database locked during get_digital_twin, retrying...")
+                    time.sleep(0.5 * (attempt + 1))
+                    continue
+                else:
+                    raise e
+            except Exception as e:
+                if conn:
+                    conn.close()
+                raise e
 
     def store_simulation_results(self, twin_id: str, simulation_data: Dict) -> None:
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
@@ -251,38 +288,35 @@ class CarbonTwinCore:
 
     # AI helpers ---------------------------------------------------------------
     def verify_emission_report_with_ai(self, report_data: Dict) -> Dict:
-        prompt = f"""
-        You are an expert carbon accounting auditor. Analyze the provided emission report and return ONLY a valid JSON object with the following structure:
+        prompt = f"""Return ONLY this JSON structure:
 
-        {{
-            "verification_score": (number 0-100),
-            "confidence_level": "(HIGH|MEDIUM|LOW)",
-            "authenticity_rating": "(AUTHENTIC|QUESTIONABLE|FRAUDULENT)",
-            "risk_level": "(LOW|MEDIUM|HIGH)",
-            "red_flags": ["list", "of", "issues"],
-            "accuracy_issues": ["list", "of", "accuracy", "problems"],
-            "recommendations": ["list", "of", "recommendations"],
-            "verified": (true or false),
-            "detailed_analysis": "detailed explanation text",
-            "next_steps": ["list", "of", "next", "steps"]
-        }}
+{{
+    "verification_score": number_0_to_100,
+    "confidence_level": "HIGH",
+    "authenticity_rating": "AUTHENTIC",
+    "risk_level": "LOW",
+    "red_flags": ["issue1", "issue2"],
+    "accuracy_issues": ["problem1", "problem2"],
+    "recommendations": ["rec1", "rec2"],
+    "verified": true,
+    "detailed_analysis": "analysis text",
+    "next_steps": ["step1", "step2"]
+}}
 
-        Report data to analyze: {json.dumps(report_data)}
-
-        Respond with ONLY the JSON object, no additional text or explanations.
-        """
+Report: {json.dumps(report_data)}"""
         try:
             if self.ai_enabled():
                 logger.info("Verification: using OpenAI")
                 resp = openai_client.chat.completions.create(
                     model="openai/gpt-5-chat-latest",
                     messages=[
-                        {"role": "system", "content": "You are an expert carbon accounting auditor."},
+                        {"role": "system", "content": "You must respond with ONLY a valid JSON object. No explanations, no text, no markdown, no greetings. Start your response with { and end with }. Any response that is not pure JSON will cause system failure."},
                         {"role": "user", "content": prompt},
                     ],
-                    temperature=0.3,
-                    top_p=0.7,
-                    frequency_penalty=0.5,
+                    temperature=0.1,
+                    top_p=0.3,
+                    frequency_penalty=1.0,
+                    presence_penalty=0.5,
                     max_tokens=1000,
                     timeout=OPENAI_TIMEOUT,
                 )
@@ -336,47 +370,43 @@ class CarbonTwinCore:
         try:
             if self.ai_enabled():
                 logger.info("Create twin: using OpenAI")
-                prompt = f"""
-                You are an expert in digital twin and carbon modeling. Create a digital twin configuration for the provided facility data.
-                
-                Return ONLY a valid JSON object with this structure:
-                {{
-                    "twin_id": "unique_twin_identifier",
-                    "baseline_model": {{
-                        "validated_emissions": (number),
-                        "emission_sources": {{"source": percentage}},
-                        "energy_efficiency": (number 0-100),
-                        "carbon_intensity": (number)
-                    }},
-                    "monitoring_setup": {{
-                        "key_metrics": ["list", "of", "metrics"],
-                        "alert_thresholds": {{}},
-                        "update_frequency": "HOURLY|DAILY|WEEKLY"
-                    }},
-                    "simulation_parameters": {{
-                        "adjustable_variables": ["list"],
-                        "scenario_templates": ["list"],
-                        "prediction_accuracy": "percentage"
-                    }},
-                    "recommendations": ["list", "of", "recommendations"],
-                    "estimated_setup_time": "time estimate",
-                    "confidence_score": (number 0-100)
-                }}
-                
-                Facility data: {json.dumps(facility_data)}
-                
-                Respond with ONLY the JSON object, no additional text.
-                """
+                prompt = f"""Return ONLY this JSON structure:
+
+{{
+    "twin_id": "unique_twin_id",
+    "baseline_model": {{
+        "validated_emissions": number,
+        "emission_sources": {{"electricity": 60, "heating": 30, "other": 10}},
+        "energy_efficiency": number_0_to_100,
+        "carbon_intensity": number
+    }},
+    "monitoring_setup": {{
+        "key_metrics": ["energy_use", "emissions"],
+        "alert_thresholds": {{}},
+        "update_frequency": "HOURLY"
+    }},
+    "simulation_parameters": {{
+        "adjustable_variables": ["variable1", "variable2"],
+        "scenario_templates": ["template1", "template2"],
+        "prediction_accuracy": "percentage"
+    }},
+    "recommendations": ["rec1", "rec2"],
+    "estimated_setup_time": "time_estimate",
+    "confidence_score": number_0_to_100
+}}
+
+Facility: {json.dumps(facility_data)}"""
                 
                 resp = openai_client.chat.completions.create(
                     model="openai/gpt-5-chat-latest",
                     messages=[
-                        {"role": "system", "content": "You are an expert in digital twin and carbon modeling."},
+                        {"role": "system", "content": "You must respond with ONLY a valid JSON object. No explanations, no text, no markdown, no greetings. Start your response with { and end with }. Any response that is not pure JSON will cause system failure."},
                         {"role": "user", "content": prompt},
                     ],
-                    temperature=0.4,
-                    top_p=0.7,
-                    frequency_penalty=0.5,
+                    temperature=0.1,
+                    top_p=0.3,
+                    frequency_penalty=1.0,
+                    presence_penalty=0.5,
                     max_tokens=1200,
                     timeout=OPENAI_TIMEOUT,
                 )
@@ -435,67 +465,64 @@ class CarbonTwinCore:
         try:
             if self.ai_enabled():
                 logger.info("Simulate: using OpenAI")
-                prompt = f"""
-                IMPORTANT: Respond with ONLY a valid JSON object. No explanations, no markdown, no text outside the JSON.
+                prompt = f"""CRITICAL: Your response must be ONLY a JSON object. Start with {{ and end with }}. No other text allowed.
 
-                You are a carbon optimization expert. Analyze the digital twin data and scenarios below, then return a JSON object with this exact structure:
+Analyze these scenarios and return this exact JSON structure:
 
-                {{
-                    "simulation_results": {{
-                        "scenario_name": {{
-                            "carbon_impact": {{
-                                "annual_reduction_kg_co2": number,
-                                "percentage_reduction": number,
-                                "cumulative_5year_reduction": number,
-                                "carbon_intensity_improvement": number
-                            }},
-                            "financial_analysis": {{
-                                "implementation_cost": number,
-                                "annual_savings": number,
-                                "carbon_credit_revenue": number,
-                                "net_roi_percentage": number,
-                                "payback_months": number
-                            }},
-                            "operational_impact": {{
-                                "efficiency_change": number,
-                                "production_impact": "POSITIVE|NEUTRAL|NEGATIVE",
-                                "maintenance_change": number,
-                                "staff_impact": "LOW|MEDIUM|HIGH"
-                            }},
-                            "risk_assessment": {{
-                                "overall_risk": "LOW|MEDIUM|HIGH",
-                                "technical_risk": "LOW|MEDIUM|HIGH",
-                                "financial_risk": "LOW|MEDIUM|HIGH",
-                                "operational_risk": "LOW|MEDIUM|HIGH",
-                                "mitigation_strategies": ["strategy1", "strategy2"]
-                            }},
-                            "recommendation": "RECOMMENDED|CONSIDER|NOT_RECOMMENDED",
-                            "confidence_score": number
-                        }}
-                    }},
-                    "comparative_analysis": {{
-                        "best_scenario": "scenario_name",
-                        "highest_roi": "scenario_name",
-                        "fastest_payback": "scenario_name",
-                        "lowest_risk": "scenario_name"
-                    }},
-                    "integrated_recommendations": ["recommendation1", "recommendation2", "recommendation3"]
-                }}
+{{
+    "simulation_results": {{
+        "scenario_name": {{
+            "carbon_impact": {{
+                "annual_reduction_kg_co2": number,
+                "percentage_reduction": number,
+                "cumulative_5year_reduction": number,
+                "carbon_intensity_improvement": number
+            }},
+            "financial_analysis": {{
+                "implementation_cost": number,
+                "annual_savings": number,
+                "carbon_credit_revenue": number,
+                "net_roi_percentage": number,
+                "payback_months": number
+            }},
+            "operational_impact": {{
+                "efficiency_change": number,
+                "production_impact": "POSITIVE",
+                "maintenance_change": number,
+                "staff_impact": "LOW"
+            }},
+            "risk_assessment": {{
+                "overall_risk": "LOW",
+                "technical_risk": "LOW",
+                "financial_risk": "MEDIUM",
+                "operational_risk": "LOW",
+                "mitigation_strategies": ["strategy1", "strategy2"]
+            }},
+            "recommendation": "RECOMMENDED",
+            "confidence_score": number
+        }}
+    }},
+    "comparative_analysis": {{
+        "best_scenario": "scenario_name",
+        "highest_roi": "scenario_name",
+        "fastest_payback": "scenario_name",
+        "lowest_risk": "scenario_name"
+    }},
+    "integrated_recommendations": ["recommendation1", "recommendation2"]
+}}
 
-                Digital Twin Data: {json.dumps(twin_data)}
-                Scenarios to Simulate: {json.dumps(scenarios)}
-
-                Return only the JSON object - no other text.
-                """
+Twin: {json.dumps(twin_data)}
+Scenarios: {json.dumps(scenarios)}"""
                 resp = openai_client.chat.completions.create(
                     model="openai/gpt-5-chat-latest",
                     messages=[
-                        {"role": "system", "content": "You are a JSON-only API. Return ONLY valid JSON objects. Never include explanations, markdown, or any text outside the JSON structure."},
+                        {"role": "system", "content": "You must respond with ONLY a valid JSON object. No explanations, no text, no markdown, no greetings. Start your response with { and end with }. Any response that is not pure JSON will cause system failure."},
                         {"role": "user", "content": prompt},
                     ],
-                    temperature=0.2,  # Lower temperature for more consistent JSON output
-                    top_p=0.5,        # More focused responses
-                    frequency_penalty=0.8,  # Reduce repetition
+                    temperature=0.1,  # Even lower temperature for JSON consistency
+                    top_p=0.3,        # More focused responses
+                    frequency_penalty=1.0,  # Maximum repetition reduction
+                    presence_penalty=0.5,    # Encourage staying on topic
                     max_tokens=2000,
                     timeout=OPENAI_TIMEOUT,
                 )
@@ -648,12 +675,23 @@ def index():
 
 @app.route("/health")
 def health_check():
+    try:
+        # Test database connection
+        conn = sqlite3.connect(core.db_path, check_same_thread=False, timeout=5.0)
+        conn.execute("SELECT 1")
+        conn.close()
+        db_status = "healthy"
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        db_status = f"error: {str(e)}"
+    
     return jsonify({
-        "status": "healthy",
+        "status": "healthy" if db_status == "healthy" else "degraded",
         "service": "CarbonTwin API",
         "timestamp": datetime.now().isoformat(),
         "aiEnabled": core.ai_enabled(),
         "dbPath": core.db_path,
+        "dbStatus": db_status,
     })
 
 
@@ -674,26 +712,48 @@ def verify_emission():
         if not isinstance(data.get("energy_sources"), list):
             data["energy_sources"] = [str(data.get("energy_sources"))] if data.get("energy_sources") else []
         result = core.verify_emission_report_with_ai(data)
-        conn = sqlite3.connect(core.db_path, check_same_thread=False)
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO emission_reports (company_id, facility_id, reported_emissions, energy_sources, production_volume, verification_score, verified, ai_analysis)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                data.get("company_id", ""),
-                data.get("facility_id", ""),
-                data.get("reported_emissions", 0.0),
-                json.dumps(data.get("energy_sources", [])),
-                data.get("production_volume", 0.0),
-                result.get("verification_score", 0),
-                result.get("verified", False),
-                json.dumps(result),
-            ),
-        )
-        conn.commit()
-        conn.close()
+        
+        # Store result with retry logic
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect(core.db_path, check_same_thread=False, timeout=30.0)
+                conn.execute("PRAGMA busy_timeout = 30000")
+                cur = conn.cursor()
+                cur.execute(
+                    """
+                    INSERT INTO emission_reports (company_id, facility_id, reported_emissions, energy_sources, production_volume, verification_score, verified, ai_analysis)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        data.get("company_id", ""),
+                        data.get("facility_id", ""),
+                        data.get("reported_emissions", 0.0),
+                        json.dumps(data.get("energy_sources", [])),
+                        data.get("production_volume", 0.0),
+                        result.get("verification_score", 0),
+                        result.get("verified", False),
+                        json.dumps(result),
+                    ),
+                )
+                conn.commit()
+                conn.close()
+                break  # Success, exit retry loop
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < max_retries - 1:
+                    logger.warning(f"Database locked during emission storage, retrying...")
+                    time.sleep(0.5 * (attempt + 1))
+                    continue
+                else:
+                    logger.error(f"Database error after {attempt + 1} attempts: {e}")
+                    break  # Continue with response even if DB storage fails
+            except Exception as e:
+                if 'conn' in locals():
+                    conn.close()
+                logger.error(f"Unexpected database error: {e}")
+                break
+        
         return jsonify(result)
     except Exception as e:
         logger.error(f"verify_emission error: {e}")
@@ -933,41 +993,43 @@ def verify_carbon_project():
     try:
         project_data = request.get_json() or {}
         if core.ai_enabled():
-            prompt = f"""Verify this carbon project and return ONLY a JSON object with this exact structure:
+            prompt = f"""Return ONLY this JSON structure:
+
 {{
   "projectVerification": {{
-    "overallScore": <0-100>,
-    "verificationStatus": "<VERIFIED|PENDING|REJECTED>",
-    "certificationRecommendation": "<VCS|GOLD|CDM|MANUAL_REVIEW>",
-    "confidence": "<HIGH|MEDIUM|LOW>"
+    "overallScore": number_0_to_100,
+    "verificationStatus": "VERIFIED",
+    "certificationRecommendation": "VCS",
+    "confidence": "HIGH"
   }},
   "methodologyAssessment": {{
-    "appropriate": <true|false>,
-    "standard": "<VCS|GOLD|CDM>",
-    "baselineAccuracy": <0-100>,
-    "issues": ["<issue1>", "<issue2>"]
+    "appropriate": true,
+    "standard": "VCS",
+    "baselineAccuracy": number_0_to_100,
+    "issues": ["issue1", "issue2"]
   }},
-  "additionalityScore": <0-100>,
-  "permanenceRisk": "<LOW|MEDIUM|HIGH>",
+  "additionalityScore": number_0_to_100,
+  "permanenceRisk": "LOW",
   "monitoringQuality": {{
-    "adequacy": "<EXCELLENT|GOOD|FAIR|POOR>",
-    "frequency": "<Monthly|Quarterly|Annual>",
-    "indicators": ["<indicator1>", "<indicator2>"]
+    "adequacy": "GOOD",
+    "frequency": "Annual",
+    "indicators": ["indicator1", "indicator2"]
   }},
-  "riskFactors": ["<risk1>", "<risk2>"],
-  "recommendations": ["<rec1>", "<rec2>"]
+  "riskFactors": ["risk1", "risk2"],
+  "recommendations": ["rec1", "rec2"]
 }}
 
-Project data: {json.dumps(project_data)}"""
+Project: {json.dumps(project_data)}"""
             resp = openai_client.chat.completions.create(
                 model="openai/gpt-5-chat-latest",
                 messages=[
-                    {"role": "system", "content": "You are a JSON-only API. Return ONLY valid JSON objects. Never include explanations, markdown, or any text outside the JSON structure."},
+                    {"role": "system", "content": "You must respond with ONLY a valid JSON object. No explanations, no text, no markdown, no greetings. Start your response with { and end with }. Any response that is not pure JSON will cause system failure."},
                     {"role": "user", "content": prompt},
                 ],
-                temperature=0.2,
-                top_p=0.5,
-                frequency_penalty=0.8,
+                temperature=0.1,
+                top_p=0.3,
+                frequency_penalty=1.0,
+                presence_penalty=0.5,
                 max_tokens=1500,
                 timeout=OPENAI_TIMEOUT,
             )
