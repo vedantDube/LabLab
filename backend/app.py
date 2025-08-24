@@ -108,6 +108,22 @@ class CarbonTwinCore:
         return bool(OpenAI and OPENAI_KEY and openai_client)
 
     @staticmethod
+    def _extract_json_from_response(response: str) -> str:
+        """Extract JSON from markdown code blocks or plain text"""
+        response = response.strip()
+        
+        # Remove markdown code block markers
+        if response.startswith("```json"):
+            response = response[7:]  # Remove ```json
+        elif response.startswith("```"):
+            response = response[3:]   # Remove ```
+            
+        if response.endswith("```"):
+            response = response[:-3]  # Remove trailing ```
+            
+        return response.strip()
+
+    @staticmethod
     def _safe_float(value, default: float = 0.0) -> float:
         try:
             if value is None:
@@ -273,12 +289,17 @@ class CarbonTwinCore:
                 ai_response = resp.choices[0].message.content
                 logger.info(f"AI response received: {ai_response[:200]}...")  # Log first 200 chars
                 
+                # Extract JSON from markdown code blocks if present
+                clean_response = self._extract_json_from_response(ai_response)
+                logger.info(f"Cleaned response: {clean_response[:200]}...")
+                
                 # Try to parse JSON response
                 try:
-                    return json.loads(ai_response)
+                    return json.loads(clean_response)
                 except json.JSONDecodeError as json_error:
                     logger.error(f"Failed to parse AI response as JSON: {json_error}")
                     logger.error(f"Raw AI response: {ai_response}")
+                    logger.error(f"Cleaned response: {clean_response}")
                     # Return a structured response based on the raw text
                     return {
                         "verification_score": 50,
@@ -289,7 +310,7 @@ class CarbonTwinCore:
                         "accuracy_issues": ["JSON format issue"],
                         "recommendations": ["Manual review required", "AI response format error"],
                         "verified": False,
-                        "detailed_analysis": f"AI provided response but format was invalid: {ai_response[:500]}",
+                        "detailed_analysis": f"AI provided response but format was invalid: {clean_response[:500]}",
                         "next_steps": ["Review AI response manually", "Check API configuration"],
                         "raw_ai_response": ai_response
                     }
@@ -363,11 +384,16 @@ class CarbonTwinCore:
                 ai_response = resp.choices[0].message.content
                 logger.info(f"Digital twin AI response: {ai_response[:200]}...")
                 
+                # Extract JSON from markdown code blocks if present
+                clean_response = self._extract_json_from_response(ai_response)
+                logger.info(f"Cleaned digital twin response: {clean_response[:200]}...")
+                
                 try:
-                    twin_result = json.loads(ai_response)
+                    twin_result = json.loads(clean_response)
                 except json.JSONDecodeError as json_error:
                     logger.error(f"Failed to parse digital twin AI response: {json_error}")
                     logger.error(f"Raw response: {ai_response}")
+                    logger.error(f"Cleaned response: {clean_response}")
                     raise RuntimeError(f"AI response parsing error: {json_error}")
             else:
                 raise RuntimeError("OpenAI not configured")
@@ -422,7 +448,19 @@ class CarbonTwinCore:
                     max_tokens=2000,
                     timeout=OPENAI_TIMEOUT,
                 )
-                simulation_result = json.loads(resp.choices[0].message.content)
+                ai_response = resp.choices[0].message.content
+                logger.info(f"Simulation AI response: {ai_response[:200]}...")
+                
+                # Extract JSON from markdown code blocks if present
+                clean_response = self._extract_json_from_response(ai_response)
+                
+                try:
+                    simulation_result = json.loads(clean_response)
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse simulation AI response: {json_error}")
+                    logger.error(f"Raw response: {ai_response}")
+                    logger.error(f"Cleaned response: {clean_response}")
+                    raise RuntimeError(f"AI simulation response parsing error: {json_error}")
             else:
                 simulation_result = {
                     "simulation_results": {
@@ -807,7 +845,29 @@ def verify_carbon_project():
                 max_tokens=1500,
                 timeout=OPENAI_TIMEOUT,
             )
-            verification_result = json.loads(resp.choices[0].message.content)
+            ai_response = resp.choices[0].message.content
+            logger.info(f"Carbon project verification AI response: {ai_response[:200]}...")
+            
+            # Extract JSON from markdown code blocks if present
+            clean_response = core._extract_json_from_response(ai_response)
+            
+            try:
+                verification_result = json.loads(clean_response)
+            except json.JSONDecodeError as json_error:
+                logger.error(f"Failed to parse carbon project AI response: {json_error}")
+                logger.error(f"Raw response: {ai_response}")
+                logger.error(f"Cleaned response: {clean_response}")
+                # Return fallback response
+                verification_result = {
+                    "projectVerification": {
+                        "overallScore": 50,
+                        "verificationStatus": "PENDING",
+                        "certificationRecommendation": "MANUAL_REVIEW",
+                        "confidence": "LOW",
+                    },
+                    "error": "AI response parsing failed",
+                    "raw_response": ai_response
+                }
         else:
             verification_result = {
                 "projectVerification": {
