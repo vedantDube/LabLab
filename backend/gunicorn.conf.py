@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
+import os
 
 # Gunicorn configuration for production deployment
-bind = "0.0.0.0:10000"
+port = os.environ.get("PORT", "10000")
+bind = f"0.0.0.0:{port}"
 workers = 1
 worker_class = "eventlet"
 worker_connections = 1000

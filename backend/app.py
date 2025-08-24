@@ -137,7 +137,7 @@ class CarbonTwinCore:
         conn.close()
         logger.info("Database initialized successfully")
 
-    async def verify_emission_report_with_chatgpt5(self, report_data: Dict) -> Dict:
+    def verify_emission_report_with_chatgpt5(self, report_data: Dict) -> Dict:
         """Use ChatGPT-5 to verify emission reports"""
         
         verification_prompt = f"""
@@ -192,7 +192,7 @@ class CarbonTwinCore:
         
         try:
             if openai:
-                response = await openai.ChatCompletion.acreate(
+                response = openai.ChatCompletion.create(
                     model="gpt-4",  # Use gpt-4 as placeholder for chatgpt-5
                     messages=[
                         {"role": "system", "content": "You are an expert carbon accounting auditor with deep knowledge of emission factors, industry standards, and fraud detection."},
@@ -572,11 +572,11 @@ def health_check():
     })
 
 @app.route('/api/verify-emission', methods=['POST'])
-async def verify_emission():
+def verify_emission():
     """Verify emission report using ChatGPT-5"""
     try:
         data = request.get_json()
-        verification_result = await carbon_twin.verify_emission_report_with_chatgpt5(data)
+        verification_result = carbon_twin.verify_emission_report_with_chatgpt5(data)
         
         # Store in database
         conn = sqlite3.connect('carbontwin.db', check_same_thread=False)
