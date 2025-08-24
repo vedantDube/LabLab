@@ -57,7 +57,10 @@ socketio = SocketIO(
 OPENAI_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("CHATGPT5_API_KEY")
 OPENAI_TIMEOUT = int(os.getenv("OPENAI_REQUEST_TIMEOUT", "20"))  # seconds
 if OpenAI and OPENAI_KEY:
-    openai_client = OpenAI(api_key=OPENAI_KEY)
+    openai_client = OpenAI(
+        base_url="https://api.aimlapi.com/v1",
+        api_key=OPENAI_KEY
+    )
     logger.info("OpenAI configured: True (key provided)")
 else:
     logger.info("OpenAI configured: False (using mock fallbacks)")
@@ -241,13 +244,16 @@ class CarbonTwinCore:
             if self.ai_enabled():
                 logger.info("Verification: using OpenAI")
                 resp = openai_client.chat.completions.create(
-                    model="gpt-5",
+                    model="openai/gpt-5-chat-latest",
                     messages=[
                         {"role": "system", "content": "You are an expert carbon accounting auditor."},
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.3,
+                    top_p=0.7,
+                    frequency_penalty=0.5,
                     max_tokens=1000,
+                    top_k=50,
                     timeout=OPENAI_TIMEOUT,
                 )
                 return json.loads(resp.choices[0].message.content)
@@ -272,13 +278,16 @@ class CarbonTwinCore:
                 logger.info("Create twin: using OpenAI")
                 prompt = f"Create a digital twin JSON for: {json.dumps(facility_data)}"
                 resp = openai_client.chat.completions.create(
-                    model="gpt-5",
+                    model="openai/gpt-5-chat-latest",
                     messages=[
                         {"role": "system", "content": "You are an expert in digital twin and carbon modeling."},
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.4,
+                    top_p=0.7,
+                    frequency_penalty=0.5,
                     max_tokens=1200,
+                    top_k=50,
                     timeout=OPENAI_TIMEOUT,
                 )
                 twin_result = json.loads(resp.choices[0].message.content)
@@ -324,13 +333,16 @@ class CarbonTwinCore:
                 logger.info("Simulate: using OpenAI")
                 prompt = f"Simulate scenarios for twin: {json.dumps(twin_data)}; scenarios: {json.dumps(scenarios)}"
                 resp = openai_client.chat.completions.create(
-                    model="gpt-5",
+                    model="openai/gpt-5-chat-latest",
                     messages=[
                         {"role": "system", "content": "You are an expert in carbon optimization."},
                         {"role": "user", "content": prompt},
                     ],
                     temperature=0.4,
+                    top_p=0.7,
+                    frequency_penalty=0.5,
                     max_tokens=2000,
+                    top_k=50,
                     timeout=OPENAI_TIMEOUT,
                 )
                 simulation_result = json.loads(resp.choices[0].message.content)
@@ -707,13 +719,16 @@ def verify_carbon_project():
         if core.ai_enabled():
             prompt = f"Verify carbon project: {json.dumps(project_data)}"
             resp = openai_client.chat.completions.create(
-                model="gpt-5",
+                model="openai/gpt-5-chat-latest",
                 messages=[
                     {"role": "system", "content": "You are an expert carbon project auditor."},
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.3,
+                top_p=0.7,
+                frequency_penalty=0.5,
                 max_tokens=1500,
+                top_k=50,
                 timeout=OPENAI_TIMEOUT,
             )
             verification_result = json.loads(resp.choices[0].message.content)
