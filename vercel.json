@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build",
+        "framework": "create-react-app"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://lablab-hhpa.onrender.com/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/build/$1"
+    }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://lablab-hhpa.onrender.com",
+    "REACT_APP_CLERK_PUBLISHABLE_KEY": "pk_test_cHJpbWFyeS1zY29ycGlvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk",
+    "CI": "false",
+    "GENERATE_SOURCEMAP": "false"
+  },
+  "functions": {
+    "frontend/src/**/*.{js,ts,tsx}": {
+      "includeFiles": "frontend/**"
+    }
+  }
+}
