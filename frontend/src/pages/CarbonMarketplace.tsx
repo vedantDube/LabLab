@@ -11,9 +11,11 @@ import {
   MagnifyingGlassIcon,
   WalletIcon,
   LinkIcon,
-  ArrowTopRightOnSquareIcon
 } from "@heroicons/react/24/outline";
-import blockchainService, { TradeOrder, CreditType } from '../services/blockchainService';
+import blockchainService, {
+  TradeOrder,
+  CreditType,
+} from "../services/blockchainService";
 // import apiService from '../services/apiService';
 
 interface CarbonCredit {
@@ -57,12 +59,15 @@ const CarbonMarketplace: React.FC = () => {
   );
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState(1);
-  
+
   // Blockchain state
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [accountBalance, setAccountBalance] = useState<string>("0");
-  const [networkInfo, setNetworkInfo] = useState<{ chainId: number; networkName: string }>({ chainId: 0, networkName: 'Unknown' });
+  const [networkInfo, setNetworkInfo] = useState<{
+    chainId: number;
+    networkName: string;
+  }>({ chainId: 0, networkName: "Unknown" });
   const [showMintModal, setShowMintModal] = useState(false);
   const [isBlockchainMode, setIsBlockchainMode] = useState(false);
 
@@ -170,7 +175,7 @@ const CarbonMarketplace: React.FC = () => {
         setWalletAddress(address);
         updateWalletInfo(address);
       } catch (error) {
-        console.error('Failed to get wallet info:', error);
+        console.error("Failed to get wallet info:", error);
       }
     }
   }, []);
@@ -179,7 +184,7 @@ const CarbonMarketplace: React.FC = () => {
     // Initialize with mock data
     setCredits(mockCredits);
     setStats(mockStats);
-    
+
     // Check if wallet is already connected
     checkWalletConnection();
     setLoading(false);
@@ -192,19 +197,19 @@ const CarbonMarketplace: React.FC = () => {
         setWalletConnected(true);
         setWalletAddress(result.address);
         updateWalletInfo(result.address);
-        toast.success('Wallet connected successfully!');
-        
+        toast.success("Wallet connected successfully!");
+
         // Load blockchain credits
         loadBlockchainCredits();
-        
+
         // Subscribe to blockchain events
         blockchainService.subscribeToEvents();
       } else {
-        toast.error(result.error || 'Failed to connect wallet');
+        toast.error(result.error || "Failed to connect wallet");
       }
     } catch (error) {
-      toast.error('Failed to connect wallet');
-      console.error('Wallet connection error:', error);
+      toast.error("Failed to connect wallet");
+      console.error("Wallet connection error:", error);
     }
   };
 
@@ -212,13 +217,13 @@ const CarbonMarketplace: React.FC = () => {
     try {
       const [balance, network] = await Promise.all([
         blockchainService.getAccountBalance(address),
-        blockchainService.getCurrentNetwork()
+        blockchainService.getCurrentNetwork(),
       ]);
-      
+
       setAccountBalance(balance);
       setNetworkInfo(network);
     } catch (error) {
-      console.error('Failed to update wallet info:', error);
+      console.error("Failed to update wallet info:", error);
     }
   };
 
@@ -227,8 +232,8 @@ const CarbonMarketplace: React.FC = () => {
       const credits = await blockchainService.getAllAvailableCredits();
       setBlockchainCredits(credits);
     } catch (error) {
-      console.error('Failed to load blockchain credits:', error);
-      toast.error('Failed to load blockchain credits');
+      console.error("Failed to load blockchain credits:", error);
+      toast.error("Failed to load blockchain credits");
     }
   };
 
@@ -273,18 +278,22 @@ const CarbonMarketplace: React.FC = () => {
           parseInt(selectedCredit.id),
           purchaseAmount
         );
-        
+
         if (result.success) {
-          toast.success(`Successfully purchased ${purchaseAmount} tons of carbon credits on blockchain!`);
+          toast.success(
+            `Successfully purchased ${purchaseAmount} tons of carbon credits on blockchain!`
+          );
           // Reload blockchain credits
           loadBlockchainCredits();
         } else {
-          toast.error(result.error || 'Blockchain transaction failed');
+          toast.error(result.error || "Blockchain transaction failed");
           return;
         }
       } else {
         // Mock purchase for demo
-        toast.success(`Successfully purchased ${purchaseAmount} tons of carbon credits!`);
+        toast.success(
+          `Successfully purchased ${purchaseAmount} tons of carbon credits!`
+        );
       }
 
       setShowPurchaseModal(false);
@@ -340,16 +349,18 @@ const CarbonMarketplace: React.FC = () => {
               Carbon Credit Marketplace
             </motion.h1>
             <p className="text-lg text-gray-600">
-              Trade verified carbon credits on the blockchain with full transparency
-              and traceability
+              Trade verified carbon credits on the blockchain with full
+              transparency and traceability
             </p>
           </div>
-          
+
           {/* Blockchain Controls */}
           <div className="flex flex-col items-end gap-4">
             {/* Mode Toggle */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">Demo Mode</span>
+              <span className="text-sm font-medium text-gray-700">
+                Demo Mode
+              </span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -359,9 +370,11 @@ const CarbonMarketplace: React.FC = () => {
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
-              <span className="text-sm font-medium text-gray-700">Blockchain</span>
+              <span className="text-sm font-medium text-gray-700">
+                Blockchain
+              </span>
             </div>
-            
+
             {/* Wallet Connection */}
             {isBlockchainMode && (
               <div className="flex items-center gap-3">
@@ -537,9 +550,6 @@ const CarbonMarketplace: React.FC = () => {
                 Mint Credits
               </button>
             )}
-          </div>
-        </div>
-      </motion.div>
           </div>
         </div>
       </motion.div>
