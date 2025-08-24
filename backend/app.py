@@ -26,9 +26,11 @@ try:
 except Exception:  # pragma: no cover
     np = None  # type: ignore
 try:
-    import openai  # type: ignore
+    from openai import OpenAI  # type: ignore
+    openai_client = None
 except Exception:  # pragma: no cover
-    openai = None  # type: ignore
+    OpenAI = None  # type: ignore
+    openai_client = None
 
 # -----------------------------------------------------------------------------
 # Setup
@@ -43,8 +45,14 @@ CORS(app, origins=["*"])
 
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-if openai:
-    openai.api_key = os.getenv("CHATGPT5_API_KEY")
+# Detect API key from OPENAI_API_KEY or fallback CHATGPT5_API_KEY
+OPENAI_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("CHATGPT5_API_KEY")
+OPENAI_TIMEOUT = int(os.getenv("OPENAI_REQUEST_TIMEOUT", "10"))  # seconds
+if OpenAI and OPENAI_KEY:
+    openai_client = OpenAI(api_key=OPENAI_KEY)
+    logger.info("OpenAI configured: True (key provided)")
+else:
+    logger.info("OpenAI configured: False (using mock fallbacks)")
 
 # -----------------------------------------------------------------------------
 # Data classes
@@ -78,9 +86,15 @@ class CarbonTwinCore:
     def __init__(self) -> None:
         self.db_path = (
             os.getenv("DATABASE_PATH")
-            or ("/tmp/carbontwin.db" if os.getenv("PORT") else "carbontwin.db")
+            or ("carbontwin.db" if not os.getenv("PORT") else "/tmp/carbontwin.db")
         )
+        # Ensure parent directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(self.db_path)), exist_ok=True)
         self._init_db()
+
+    @staticmethod
+    def ai_enabled() -> bool:
+        return bool(OpenAI and OPENAI_KEY and openai_client)
 
     @staticmethod
     def _safe_float(value, default: float = 0.0) -> float:
@@ -216,8 +230,9 @@ class CarbonTwinCore:
         Report: {json.dumps(report_data)}
         """
         try:
-            if openai and getattr(openai, "api_key", None):
-                resp = openai.ChatCompletion.create(  # type: ignore
+            if self.ai_enabled():
+                logger.info("Verification: using OpenAI")
+                resp = openai_client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are an expert carbon accounting auditor."},
@@ -225,8 +240,9 @@ class CarbonTwinCore:
                     ],
                     temperature=0.3,
                     max_tokens=1000,
+                    timeout=OPENAI_TIMEOUT,
                 )
-                return json.loads(resp.choices[0].message.content)  # type: ignore
+                return json.loads(resp.choices[0].message.content)
         except Exception as e:
             logger.error(f"AI verification error: {e}")
         return {
@@ -244,9 +260,10 @@ class CarbonTwinCore:
 
     def create_digital_twin_with_ai(self, facility_data: Dict) -> Dict:
         try:
-            if openai and getattr(openai, "api_key", None):
+            if self.ai_enabled():
+                logger.info("Create twin: using OpenAI")
                 prompt = f"Create a digital twin JSON for: {json.dumps(facility_data)}"
-                resp = openai.ChatCompletion.create(  # type: ignore
+                resp = openai_client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are an expert in digital twin and carbon modeling."},
@@ -254,8 +271,9 @@ class CarbonTwinCore:
                     ],
                     temperature=0.4,
                     max_tokens=1200,
+                    timeout=OPENAI_TIMEOUT,
                 )
-                twin_result = json.loads(resp.choices[0].message.content)  # type: ignore
+                twin_result = json.loads(resp.choices[0].message.content)
             else:
                 raise RuntimeError("OpenAI not configured")
         except Exception as e:
@@ -294,9 +312,10 @@ class CarbonTwinCore:
         if not twin_data:
             return {"error": "Digital twin not found"}
         try:
-            if openai and getattr(openai, "api_key", None):
+            if self.ai_enabled():
+                logger.info("Simulate: using OpenAI")
                 prompt = f"Simulate scenarios for twin: {json.dumps(twin_data)}; scenarios: {json.dumps(scenarios)}"
-                resp = openai.ChatCompletion.create(  # type: ignore
+                resp = openai_client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": "You are an expert in carbon optimization."},
@@ -304,8 +323,9 @@ class CarbonTwinCore:
                     ],
                     temperature=0.4,
                     max_tokens=2000,
+                    timeout=OPENAI_TIMEOUT,
                 )
-                simulation_result = json.loads(resp.choices[0].message.content)  # type: ignore
+                simulation_result = json.loads(resp.choices[0].message.content)
             else:
                 simulation_result = {
                     "simulation_results": {
@@ -392,7 +412,21 @@ def index():
 
 @app.route("/health")
 def health_check():
-    return jsonify({"status": "healthy", "service": "CarbonTwin API", "timestamp": datetime.now().isoformat()})
+    return jsonify({
+        "status": "healthy",
+        "service": "CarbonTwin API",
+        "timestamp": datetime.now().isoformat(),
+        "aiEnabled": core.ai_enabled(),
+        "dbPath": core.db_path,
+    })
+
+
+@app.route("/api/config", methods=["GET"])
+def api_config():
+    return jsonify({
+        "aiEnabled": core.ai_enabled(),
+        "openaiTimeoutSec": OPENAI_TIMEOUT,
+    })
 
 
 @app.route("/api/verify-emission", methods=["POST"])
@@ -662,9 +696,9 @@ def purchase_carbon_credits():
 def verify_carbon_project():
     try:
         project_data = request.get_json() or {}
-        if openai and getattr(openai, "api_key", None):
+        if core.ai_enabled():
             prompt = f"Verify carbon project: {json.dumps(project_data)}"
-            resp = openai.ChatCompletion.create(  # type: ignore
+            resp = openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an expert carbon project auditor."},
@@ -672,8 +706,9 @@ def verify_carbon_project():
                 ],
                 temperature=0.3,
                 max_tokens=1500,
+                timeout=OPENAI_TIMEOUT,
             )
-            verification_result = json.loads(resp.choices[0].message.content)  # type: ignore
+            verification_result = json.loads(resp.choices[0].message.content)
         else:
             verification_result = {
                 "projectVerification": {
