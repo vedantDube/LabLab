@@ -253,7 +253,6 @@ class CarbonTwinCore:
                     top_p=0.7,
                     frequency_penalty=0.5,
                     max_tokens=1000,
-                    top_k=50,
                     timeout=OPENAI_TIMEOUT,
                 )
                 return json.loads(resp.choices[0].message.content)
@@ -287,7 +286,6 @@ class CarbonTwinCore:
                     top_p=0.7,
                     frequency_penalty=0.5,
                     max_tokens=1200,
-                    top_k=50,
                     timeout=OPENAI_TIMEOUT,
                 )
                 twin_result = json.loads(resp.choices[0].message.content)
@@ -342,7 +340,6 @@ class CarbonTwinCore:
                     top_p=0.7,
                     frequency_penalty=0.5,
                     max_tokens=2000,
-                    top_k=50,
                     timeout=OPENAI_TIMEOUT,
                 )
                 simulation_result = json.loads(resp.choices[0].message.content)
@@ -728,7 +725,6 @@ def verify_carbon_project():
                 top_p=0.7,
                 frequency_penalty=0.5,
                 max_tokens=1500,
-                top_k=50,
                 timeout=OPENAI_TIMEOUT,
             )
             verification_result = json.loads(resp.choices[0].message.content)
