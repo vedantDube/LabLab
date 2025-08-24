@@ -47,7 +47,7 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Detect API key from OPENAI_API_KEY or fallback CHATGPT5_API_KEY
 OPENAI_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("CHATGPT5_API_KEY")
-OPENAI_TIMEOUT = int(os.getenv("OPENAI_REQUEST_TIMEOUT", "1000"))  # seconds
+OPENAI_TIMEOUT = int(os.getenv("OPENAI_REQUEST_TIMEOUT", "20"))  # seconds
 if OpenAI and OPENAI_KEY:
     openai_client = OpenAI(api_key=OPENAI_KEY)
     logger.info("OpenAI configured: True (key provided)")
