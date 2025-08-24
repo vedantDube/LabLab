@@ -1,0 +1,11 @@
+# Render Deploy Configuration
+# This file is used by Render to configure the deployment
+
+# Build Command
+pip install -r requirements.txt
+
+# Start Command  
+python app.py
+
+# Environment
+PYTHON_VERSION=3.12
