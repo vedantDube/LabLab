@@ -128,11 +128,11 @@ const Navbar: React.FC = () => {
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+        <div className="flex justify-between items-center h-16 relative">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0">
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">CT</span>
@@ -140,14 +140,11 @@ const Navbar: React.FC = () => {
               <span className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">
                 CarbonTwin
               </span>
-              <span className="text-lg font-bold text-gray-900 dark:text-white sm:hidden">
-                CT
-              </span>
             </Link>
           </div>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Navigation Links - Hidden on mobile */}
+          <div className="hidden lg:flex items-center space-x-6 xl:space-x-8 flex-1 justify-center">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -161,7 +158,7 @@ const Navbar: React.FC = () => {
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
-                  <span>{item.name}</span>
+                  <span className="hidden xl:inline">{item.name}</span>
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
@@ -176,42 +173,33 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Right side buttons */}
-          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-            {/* AI Status Indicator - Hidden on very small screens */}
+          <div className="flex items-center space-x-2 md:space-x-3 flex-shrink-0">
+            {/* AI Status Indicator - Responsive visibility */}
             <div className="hidden sm:flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-400 hidden lg:inline">
+              <span className="text-xs text-gray-600 dark:text-gray-400 hidden md:inline">
                 ChatGPT-5 Active
               </span>
-              <span className="text-xs text-gray-600 dark:text-gray-400 lg:hidden">
+              <span className="text-xs text-gray-600 dark:text-gray-400 md:hidden">
                 AI
               </span>
             </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="md:hidden p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              {showMobileMenu ? (
-                <XMarkIcon className="w-6 h-6" />
-              ) : (
-                <Bars3Icon className="w-6 h-6" />
-              )}
-            </button>
-
-            {/* User Greeting */}
+            {/* User Greeting - Hide on small screens */}
             {user && (
-              <div className="hidden md:flex items-center text-sm text-gray-700 dark:text-gray-300 mr-3">
-                <span>
+              <div className="hidden lg:flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <span className="truncate max-w-32 xl:max-w-none">
                   Welcome, {user.firstName || user.username || "User"}!
                 </span>
               </div>
             )}
 
-            {/* Settings - Hidden on mobile, shown in mobile menu */}
-            <div className="hidden md:block relative" ref={settingsRef}>
-              {/* Clerk User Button - handles authentication UI */}
+            {/* Desktop User Controls */}
+            <div
+              className="hidden md:flex items-center space-x-2 relative"
+              ref={settingsRef}
+            >
+              {/* Clerk User Button */}
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
@@ -227,10 +215,10 @@ const Navbar: React.FC = () => {
                 userProfileUrl="/user-profile"
               />
 
-              {/* Fallback Settings Dropdown for additional features */}
+              {/* Settings Button */}
               <button
                 onClick={toggleSettings}
-                className="ml-2 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 <Cog6ToothIcon className="w-5 h-5" />
               </button>
@@ -243,7 +231,7 @@ const Navbar: React.FC = () => {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-w-xs"
+                    className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
                     style={{
                       maxHeight: "calc(100vh - 100px)",
                       right: "0",
@@ -278,6 +266,18 @@ const Navbar: React.FC = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              className="md:hidden p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              {showMobileMenu ? (
+                <XMarkIcon className="w-6 h-6" />
+              ) : (
+                <Bars3Icon className="w-6 h-6" />
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -311,6 +311,32 @@ const Navbar: React.FC = () => {
                   </Link>
                 );
               })}
+
+              {/* Mobile User Profile */}
+              {user && (
+                <div className="flex items-center space-x-3 px-3 py-3 border-t border-gray-200 dark:border-gray-700 mt-3 pt-3">
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-8 h-8",
+                        userButtonPopoverCard:
+                          "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+                        userButtonPopoverActionButton:
+                          "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
+                      },
+                    }}
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user.firstName || user.username || "User"}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Signed in
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Mobile AI Status */}
               <div className="flex items-center space-x-3 px-3 py-3">

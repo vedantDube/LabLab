@@ -422,14 +422,16 @@ const EmissionTracker: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200"
+        className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700"
       >
         <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3">
           🔒 How Our AI Verification Works
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300">
           <div>
-            <h4 className="font-medium mb-2">ChatGPT-5 Analysis</h4>
+            <h4 className="font-medium mb-2 text-gray-900 dark:text-white">
+              ChatGPT-5 Analysis
+            </h4>
             <ul className="space-y-1">
               <li>• Emission factor validation</li>
               <li>• Industry benchmark comparison</li>
@@ -438,7 +440,9 @@ const EmissionTracker: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="font-medium mb-2">Blockchain Recording</h4>
+            <h4 className="font-medium mb-2 text-gray-900 dark:text-white">
+              Blockchain Recording
+            </h4>
             <ul className="space-y-1">
               <li>• Immutable audit trail</li>
               <li>• Timestamp verification</li>
