@@ -9,18 +9,20 @@ requests==2.31.0
 python-socketio==5.8.0
 python-engineio==4.7.1
 
-# Production server
+# Production server - optimized versions
 gunicorn==21.2.0
-eventlet==0.33.3
 
-# Data processing (compatible versions)
+# Data processing (lightweight version)
 numpy==1.24.3
 
-# AI and API dependencies
-openai
+# AI and API dependencies - latest stable
+openai>=1.0.0
 
 # Blockchain dependencies
 web3==6.9.0
 
 # Additional utilities
 werkzeug==2.3.6
+
+# Production optimizations
+gevent==23.7.0

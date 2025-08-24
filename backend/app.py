@@ -41,9 +41,17 @@ logger = logging.getLogger("carbontwin")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "carbontwin-secret-key")
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max request size
 CORS(app, origins=["*"])
 
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Configure SocketIO for production with reduced memory footprint
+socketio = SocketIO(
+    app, 
+    cors_allowed_origins="*",
+    async_mode="threading",
+    ping_timeout=10,
+    ping_interval=5
+)
 
 # Detect API key from OPENAI_API_KEY or fallback CHATGPT5_API_KEY
 OPENAI_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("CHATGPT5_API_KEY")
