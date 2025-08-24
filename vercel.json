@@ -12,7 +12,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://your-backend-url.railway.app/api/$1"
+      "dest": "https://lablab-hhpa.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",
@@ -20,7 +20,7 @@
     }
   ],
   "env": {
-    "REACT_APP_API_URL": "https://your-backend-url.railway.app",
+    "REACT_APP_API_URL": "https://lablab-hhpa.onrender.com",
     "REACT_APP_CLERK_PUBLISHABLE_KEY": "pk_test_cHJpbWFyeS1zY29ycGlvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk"
   },
   "buildCommand": "cd frontend && npm install && npm run build",
