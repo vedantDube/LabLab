@@ -99,6 +99,8 @@ class BlockchainService {
 
   constructor() {
     this.initializeWeb3();
+    // Ensure we start with a clean state
+    this.disconnect();
   }
 
   private async initializeWeb3() {
@@ -112,6 +114,7 @@ class BlockchainService {
     address?: string;
     error?: string;
   }> {
+    console.log("BlockchainService.connectWallet() called"); // Debug log
     try {
       if (!window.ethereum) {
         return {
@@ -141,9 +144,12 @@ class BlockchainService {
       window.ethereum.on("accountsChanged", (accounts: string[]) => {
         if (accounts.length === 0) {
           this.disconnect();
-        } else {
-          this.connectWallet();
+          // Clear stored connection consent when user disconnects from MetaMask
+          localStorage.removeItem("walletConnected");
+          localStorage.removeItem("walletAddress");
         }
+        // DON'T automatically reconnect even if user consented before
+        // They need to manually click connect again
       });
 
       // Listen for chain changes
@@ -163,8 +169,20 @@ class BlockchainService {
     this.signer = null;
     this.contract = null;
     this.isConnected = false;
-  }
 
+    // Remove event listeners to prevent automatic reconnection
+    if (typeof window !== "undefined" && window.ethereum) {
+      try {
+        // Only remove listeners if they exist
+        if (window.ethereum.removeAllListeners) {
+          window.ethereum.removeAllListeners("accountsChanged");
+          window.ethereum.removeAllListeners("chainChanged");
+        }
+      } catch (error) {
+        console.warn("Failed to remove event listeners:", error);
+      }
+    }
+  }
   getConnection() {
     return {
       isConnected: this.isConnected,
@@ -172,6 +190,23 @@ class BlockchainService {
       signer: this.signer,
       contract: this.contract,
     };
+  }
+
+  // Check if wallet is actually connected without prompting user
+  async isWalletActuallyConnected(): Promise<boolean> {
+    try {
+      if (!window.ethereum) return false;
+
+      // Check existing permissions without requesting new ones
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+
+      return accounts.length > 0 && this.isConnected;
+    } catch (error) {
+      console.error("Failed to check wallet connection:", error);
+      return false;
+    }
   }
 
   // Carbon Credit Trading Functions

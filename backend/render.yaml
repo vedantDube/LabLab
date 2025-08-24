@@ -1,0 +1,11 @@
+# Render Deploy Configuration
+# Simple build process for Python 3.11
+
+# Build Command - Simple pip install
+pip install -r requirements.txt
+
+# Start Command - Use Gunicorn for production  
+gunicorn app:app --config gunicorn.conf.py
+
+# Environment
+PYTHON_VERSION=3.11.8
