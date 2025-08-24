@@ -1,8 +1,9 @@
 {
   "version": 2,
+  "name": "carbontwin-frontend",
   "builds": [
     {
-      "src": "frontend/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
@@ -16,13 +17,13 @@
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/$1"
+      "dest": "/index.html"
     }
   ],
   "env": {
     "REACT_APP_API_URL": "https://lablab-hhpa.onrender.com",
-    "REACT_APP_CLERK_PUBLISHABLE_KEY": "pk_test_cHJpbWFyeS1zY29ycGlvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk"
-  },
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/build"
+    "REACT_APP_CLERK_PUBLISHABLE_KEY": "pk_test_cHJpbWFyeS1zY29ycGlvbi00OC5jbGVyay5hY2NvdW50cy5kZXYk",
+    "CI": "false",
+    "GENERATE_SOURCEMAP": "false"
+  }
 }
