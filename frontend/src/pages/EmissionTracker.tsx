@@ -89,10 +89,10 @@ const EmissionTracker: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
           🌍 Emission Tracker & AI Verification
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-400">
+        <p className="text-lg text-gray-600">
           Submit emission reports for ChatGPT-5 powered verification and
           blockchain recording
         </p>
@@ -102,17 +102,17 @@ const EmissionTracker: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"
+        className="bg-white rounded-xl shadow-lg p-8"
       >
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Submit Emission Report
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Company ID *
               </label>
               <input
@@ -120,14 +120,14 @@ const EmissionTracker: React.FC = () => {
                 name="company_id"
                 value={formData.company_id}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter company identifier"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Facility ID *
               </label>
               <input
@@ -135,7 +135,7 @@ const EmissionTracker: React.FC = () => {
                 name="facility_id"
                 value={formData.facility_id}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter facility identifier"
                 required
               />
@@ -145,7 +145,7 @@ const EmissionTracker: React.FC = () => {
           {/* Emission Data */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Reported Emissions (kg CO2) *
               </label>
               <input
@@ -153,7 +153,7 @@ const EmissionTracker: React.FC = () => {
                 name="reported_emissions"
                 value={formData.reported_emissions}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter total emissions in kg CO2"
                 step="0.01"
                 required
@@ -161,7 +161,7 @@ const EmissionTracker: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Production Volume
               </label>
               <input
@@ -169,7 +169,7 @@ const EmissionTracker: React.FC = () => {
                 name="production_volume"
                 value={formData.production_volume}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter production volume"
                 step="0.01"
               />
@@ -178,14 +178,14 @@ const EmissionTracker: React.FC = () => {
 
           {/* Time Period */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Reporting Period
             </label>
             <select
               name="time_period"
               value={formData.time_period}
               onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select reporting period</option>
               <option value="daily">Daily</option>
@@ -198,7 +198,7 @@ const EmissionTracker: React.FC = () => {
 
           {/* Energy Sources */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-4">
               Energy Sources
             </label>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -211,11 +211,9 @@ const EmissionTracker: React.FC = () => {
                     type="checkbox"
                     checked={formData.energy_sources.includes(source)}
                     onChange={() => handleEnergySourceChange(source)}
-                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    {source}
-                  </span>
+                  <span className="text-sm text-gray-700">{source}</span>
                 </label>
               ))}
             </div>
@@ -223,7 +221,7 @@ const EmissionTracker: React.FC = () => {
 
           {/* Supporting Data */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Supporting Data & Documentation
             </label>
             <textarea
@@ -231,7 +229,7 @@ const EmissionTracker: React.FC = () => {
               value={formData.supporting_data}
               onChange={handleInputChange}
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Provide additional context, methodology, or references to supporting documents..."
             />
           </div>
@@ -263,20 +261,20 @@ const EmissionTracker: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8"
+          className="bg-white rounded-xl shadow-lg p-8"
         >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
             🤖 ChatGPT-5 Verification Results
           </h2>
 
           <div className="space-y-6">
             {/* Verification Score */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <div>
-                <h3 className="font-medium text-gray-900 dark:text-white">
+                <h3 className="font-medium text-gray-900">
                   Verification Score
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600">
                   AI confidence in report authenticity
                 </p>
               </div>
@@ -386,10 +384,10 @@ const EmissionTracker: React.FC = () => {
             {/* Detailed Analysis */}
             {verificationResult.detailed_analysis && (
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-medium text-gray-800 dark:text-white mb-2">
+                <h3 className="font-medium text-gray-800 mb-2">
                   📊 Detailed Analysis
                 </h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
                   {verificationResult.detailed_analysis}
                 </p>
               </div>
@@ -422,16 +420,14 @@ const EmissionTracker: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700"
+        className="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 border border-blue-200"
       >
-        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3">
+        <h3 className="font-bold text-lg text-gray-900 mb-3">
           🔒 How Our AI Verification Works
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
           <div>
-            <h4 className="font-medium mb-2 text-gray-900 dark:text-white">
-              ChatGPT-5 Analysis
-            </h4>
+            <h4 className="font-medium mb-2">ChatGPT-5 Analysis</h4>
             <ul className="space-y-1">
               <li>• Emission factor validation</li>
               <li>• Industry benchmark comparison</li>
@@ -440,9 +436,7 @@ const EmissionTracker: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="font-medium mb-2 text-gray-900 dark:text-white">
-              Blockchain Recording
-            </h4>
+            <h4 className="font-medium mb-2">Blockchain Recording</h4>
             <ul className="space-y-1">
               <li>• Immutable audit trail</li>
               <li>• Timestamp verification</li>

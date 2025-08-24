@@ -1,26 +1,12 @@
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
 
-// Prefer env var; otherwise auto-detect for local vs. hosted
-const detectApiBaseUrl = (): string => {
-  const envUrl = process.env.REACT_APP_API_URL;
-  if (envUrl && envUrl.trim()) return envUrl.trim();
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    // If running on Vercel or any non-localhost host, use the Render backend
-    if (host !== "localhost" && host !== "127.0.0.1") {
-      return "https://lablab-hhpa.onrender.com";
-    }
-  }
-  return "http://localhost:5000";
-};
-
-const API_BASE_URL = detectApiBaseUrl();
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 // Axios instance with default configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // Increased timeout to 30 seconds
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },

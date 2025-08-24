@@ -56,23 +56,15 @@ const Dashboard: React.FC = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 border-l-4 ${color} transition-colors duration-200`}
+      className={`bg-white rounded-xl shadow-lg p-6 border-l-4 ${color}`}
     >
       <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-600 dark:text-gray-400 truncate">
-            {title}
-          </p>
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-            {value}
-          </p>
-          {subtitle && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {subtitle}
-            </p>
-          )}
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
         </div>
-        <div className="text-3xl sm:text-4xl ml-4 flex-shrink-0">{icon}</div>
+        <div className="text-4xl">{icon}</div>
       </div>
     </motion.div>
   );
@@ -91,16 +83,14 @@ const Dashboard: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-4 sm:p-6 lg:p-8 text-white"
+        className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 text-white"
       >
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">
-          Welcome to CarbonTwin 🌍
-        </h1>
-        <p className="text-lg sm:text-xl opacity-90 mb-4 sm:mb-6">
+        <h1 className="text-4xl font-bold mb-4">Welcome to CarbonTwin 🌍</h1>
+        <p className="text-xl opacity-90 mb-6">
           AI-Powered Carbon Management Platform combining blockchain
           transparency with digital twin simulation
         </p>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+        <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
             <span>ChatGPT-5 AI Active</span>
@@ -116,10 +106,10 @@ const Dashboard: React.FC = () => {
       {stats && (
         <>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Platform Overview
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <StatCard
                 title="Emission Reports"
                 value={stats.platform_stats.total_emission_reports}
@@ -153,7 +143,7 @@ const Dashboard: React.FC = () => {
 
           {/* AI Insights */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               AI Intelligence
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -183,7 +173,7 @@ const Dashboard: React.FC = () => {
 
           {/* Environmental Impact */}
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Environmental Impact
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -224,9 +214,7 @@ const Dashboard: React.FC = () => {
 
       {/* Quick Actions */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          Quick Actions
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -265,54 +253,46 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activity */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Recent Activity
         </h2>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">
-                  AI
-                </span>
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-bold">AI</span>
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium">
                   ChatGPT-5 verified emission report #1234
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500">
                   2 minutes ago • Verification score: 87%
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                <span className="text-green-600 dark:text-green-400 font-bold">
-                  DT
-                </span>
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 font-bold">DT</span>
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  Digital twin simulation completed
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="font-medium">Digital twin simulation completed</p>
+                <p className="text-sm text-gray-500">
                   5 minutes ago • 23% reduction potential identified
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                <span className="text-purple-600 dark:text-purple-400 font-bold">
-                  BC
-                </span>
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <span className="text-purple-600 font-bold">BC</span>
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium">
                   Carbon credit transaction recorded on blockchain
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500">
                   12 minutes ago • 50 tons CO2 traded
                 </p>
               </div>

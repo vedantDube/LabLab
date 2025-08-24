@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -11,8 +11,9 @@ import {
   MagnifyingGlassIcon,
   WalletIcon,
   LinkIcon,
+  ArrowTopRightOnSquareIcon
 } from "@heroicons/react/24/outline";
-import blockchainService, { TradeOrder } from "../services/blockchainService";
+import blockchainService, { TradeOrder, CreditType } from '../services/blockchainService';
 // import apiService from '../services/apiService';
 
 interface CarbonCredit {
@@ -56,15 +57,12 @@ const CarbonMarketplace: React.FC = () => {
   );
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseAmount, setPurchaseAmount] = useState(1);
-
+  
   // Blockchain state
   const [walletConnected, setWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [accountBalance, setAccountBalance] = useState<string>("0");
-  const [networkInfo, setNetworkInfo] = useState<{
-    chainId: number;
-    networkName: string;
-  }>({ chainId: 0, networkName: "Unknown" });
+  const [networkInfo, setNetworkInfo] = useState<{ chainId: number; networkName: string }>({ chainId: 0, networkName: 'Unknown' });
   const [showMintModal, setShowMintModal] = useState(false);
   const [isBlockchainMode, setIsBlockchainMode] = useState(false);
 
@@ -163,69 +161,64 @@ const CarbonMarketplace: React.FC = () => {
     []
   );
 
+  const checkWalletConnection = useCallback(async () => {
+    const connection = blockchainService.getConnection();
+    if (connection.isConnected && connection.signer) {
+      try {
+        const address = await connection.signer.getAddress();
+        setWalletConnected(true);
+        setWalletAddress(address);
+        updateWalletInfo(address);
+      } catch (error) {
+        console.error('Failed to get wallet info:', error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     // Initialize with mock data
     setCredits(mockCredits);
     setStats(mockStats);
-
-    // Clear any previous wallet connection state on fresh load
-    // This ensures wallet only connects when user explicitly clicks connect
-    localStorage.removeItem("walletConnected");
-    localStorage.removeItem("walletAddress");
-    setWalletConnected(false);
-    setWalletAddress("");
-
+    
+    // Check if wallet is already connected
+    checkWalletConnection();
     setLoading(false);
-  }, [mockCredits, mockStats]);
+  }, [mockCredits, mockStats, checkWalletConnection]);
 
   const connectWallet = async () => {
-    console.log("User clicked Connect Wallet button"); // Debug log
     try {
       const result = await blockchainService.connectWallet();
       if (result.success && result.address) {
         setWalletConnected(true);
         setWalletAddress(result.address);
         updateWalletInfo(result.address);
-        // Store user's explicit consent to connect wallet
-        localStorage.setItem("walletConnected", "true");
-        localStorage.setItem("walletAddress", result.address);
-        toast.success("Wallet connected successfully!");
-
+        toast.success('Wallet connected successfully!');
+        
         // Load blockchain credits
         loadBlockchainCredits();
-
+        
         // Subscribe to blockchain events
         blockchainService.subscribeToEvents();
       } else {
-        toast.error(result.error || "Failed to connect wallet");
+        toast.error(result.error || 'Failed to connect wallet');
       }
     } catch (error) {
-      toast.error("Failed to connect wallet");
-      console.error("Wallet connection error:", error);
+      toast.error('Failed to connect wallet');
+      console.error('Wallet connection error:', error);
     }
-  };
-
-  const disconnectWallet = () => {
-    setWalletConnected(false);
-    setWalletAddress("");
-    blockchainService.disconnect();
-    // Clear stored connection consent
-    localStorage.removeItem("walletConnected");
-    localStorage.removeItem("walletAddress");
-    toast.success("Wallet disconnected");
   };
 
   const updateWalletInfo = async (address: string) => {
     try {
       const [balance, network] = await Promise.all([
         blockchainService.getAccountBalance(address),
-        blockchainService.getCurrentNetwork(),
+        blockchainService.getCurrentNetwork()
       ]);
-
+      
       setAccountBalance(balance);
       setNetworkInfo(network);
     } catch (error) {
-      console.error("Failed to update wallet info:", error);
+      console.error('Failed to update wallet info:', error);
     }
   };
 
@@ -234,8 +227,8 @@ const CarbonMarketplace: React.FC = () => {
       const credits = await blockchainService.getAllAvailableCredits();
       setBlockchainCredits(credits);
     } catch (error) {
-      console.error("Failed to load blockchain credits:", error);
-      toast.error("Failed to load blockchain credits");
+      console.error('Failed to load blockchain credits:', error);
+      toast.error('Failed to load blockchain credits');
     }
   };
 
@@ -280,22 +273,18 @@ const CarbonMarketplace: React.FC = () => {
           parseInt(selectedCredit.id),
           purchaseAmount
         );
-
+        
         if (result.success) {
-          toast.success(
-            `Successfully purchased ${purchaseAmount} tons of carbon credits on blockchain!`
-          );
+          toast.success(`Successfully purchased ${purchaseAmount} tons of carbon credits on blockchain!`);
           // Reload blockchain credits
           loadBlockchainCredits();
         } else {
-          toast.error(result.error || "Blockchain transaction failed");
+          toast.error(result.error || 'Blockchain transaction failed');
           return;
         }
       } else {
         // Mock purchase for demo
-        toast.success(
-          `Successfully purchased ${purchaseAmount} tons of carbon credits!`
-        );
+        toast.success(`Successfully purchased ${purchaseAmount} tons of carbon credits!`);
       }
 
       setShowPurchaseModal(false);
@@ -338,31 +327,29 @@ const CarbonMarketplace: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-start mb-4">
           <div>
             <motion.h1
-              className="text-4xl font-bold text-gray-900 dark:text-white mb-4"
+              className="text-4xl font-bold text-gray-900 mb-4"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
             >
               Carbon Credit Marketplace
             </motion.h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Trade verified carbon credits on the blockchain with full
-              transparency and traceability
+            <p className="text-lg text-gray-600">
+              Trade verified carbon credits on the blockchain with full transparency
+              and traceability
             </p>
           </div>
-
+          
           {/* Blockchain Controls */}
           <div className="flex flex-col items-end gap-4">
             {/* Mode Toggle */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Demo Mode
-              </span>
+              <span className="text-sm font-medium text-gray-700">Demo Mode</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -372,35 +359,26 @@ const CarbonMarketplace: React.FC = () => {
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Blockchain
-              </span>
+              <span className="text-sm font-medium text-gray-700">Blockchain</span>
             </div>
-
+            
             {/* Wallet Connection */}
             {isBlockchainMode && (
               <div className="flex items-center gap-3">
                 {walletConnected ? (
-                  <div className="flex items-center gap-3 bg-green-100 dark:bg-green-900/30 px-4 py-2 rounded-lg">
+                  <div className="flex items-center gap-3 bg-green-100 px-4 py-2 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <WalletIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
-                      <span className="text-sm font-medium text-green-800 dark:text-green-300">
+                      <WalletIcon className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">
                         {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                       </span>
                     </div>
-                    <div className="text-xs text-green-600 dark:text-green-400">
+                    <div className="text-xs text-green-600">
                       {parseFloat(accountBalance).toFixed(4)} ETH
                     </div>
-                    <div className="text-xs text-green-600 dark:text-green-400">
+                    <div className="text-xs text-green-600">
                       {networkInfo.networkName}
                     </div>
-                    <button
-                      onClick={disconnectWallet}
-                      className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-200 ml-2"
-                      title="Disconnect Wallet"
-                    >
-                      ✕
-                    </button>
                   </div>
                 ) : (
                   <button
@@ -420,15 +398,15 @@ const CarbonMarketplace: React.FC = () => {
       {/* Stats Cards */}
       {stats && (
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-gray-600">
                   Total Credits
                 </p>
                 <p className="text-2xl font-bold text-green-600">
@@ -439,10 +417,10 @@ const CarbonMarketplace: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-gray-600">
                   Total Volume
                 </p>
                 <p className="text-2xl font-bold text-blue-600">
@@ -453,12 +431,10 @@ const CarbonMarketplace: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Avg Price
-                </p>
+                <p className="text-sm font-medium text-gray-600">Avg Price</p>
                 <p className="text-2xl font-bold text-purple-600">
                   ${stats.averagePrice}/ton
                 </p>
@@ -467,12 +443,10 @@ const CarbonMarketplace: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  CO2 Offset
-                </p>
+                <p className="text-sm font-medium text-gray-600">CO2 Offset</p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.totalCO2Offset.toLocaleString()}t
                 </p>
@@ -481,10 +455,10 @@ const CarbonMarketplace: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-gray-600">
                   Active Listings
                 </p>
                 <p className="text-2xl font-bold text-orange-600">
@@ -495,10 +469,10 @@ const CarbonMarketplace: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <div className="bg-white rounded-xl shadow-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-gray-600">
                   Completed Trades
                 </p>
                 <p className="text-2xl font-bold text-indigo-600">
@@ -513,7 +487,7 @@ const CarbonMarketplace: React.FC = () => {
 
       {/* Search and Filters */}
       <motion.div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8"
+        className="bg-white rounded-xl shadow-lg p-6 mb-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -526,7 +500,7 @@ const CarbonMarketplace: React.FC = () => {
               placeholder="Search projects, locations, types..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
 
@@ -534,7 +508,7 @@ const CarbonMarketplace: React.FC = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">All Types</option>
               <option value="forest">Forest Conservation</option>
@@ -566,10 +540,13 @@ const CarbonMarketplace: React.FC = () => {
           </div>
         </div>
       </motion.div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Credits Grid */}
       <motion.div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
@@ -577,7 +554,7 @@ const CarbonMarketplace: React.FC = () => {
         {filteredCredits.map((credit, index) => (
           <motion.div
             key={credit.id}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 * index }}
@@ -591,51 +568,39 @@ const CarbonMarketplace: React.FC = () => {
 
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
                   {credit.projectType}
                 </span>
                 <div className="flex items-center gap-2">
                   {getStatusIcon(credit.verificationStatus)}
-                  <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                  <span className="text-sm text-gray-600 capitalize">
                     {credit.verificationStatus}
                   </span>
                 </div>
               </div>
 
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
+              <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                 {credit.description}
               </p>
 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Available:
-                  </span>
-                  <span className="font-semibold dark:text-white">
+                  <span className="text-sm text-gray-600">Available:</span>
+                  <span className="font-semibold">
                     {credit.amount} tons CO2
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Price per ton:
-                  </span>
-                  <span className="font-semibold dark:text-white">
-                    ${credit.pricePerTon}
-                  </span>
+                  <span className="text-sm text-gray-600">Price per ton:</span>
+                  <span className="font-semibold">${credit.pricePerTon}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Vintage:
-                  </span>
-                  <span className="font-semibold dark:text-white">
-                    {credit.vintage}
-                  </span>
+                  <span className="text-sm text-gray-600">Vintage:</span>
+                  <span className="font-semibold">{credit.vintage}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Certification:
-                  </span>
-                  <span className="font-semibold dark:text-white text-xs">
+                  <span className="text-sm text-gray-600">Certification:</span>
+                  <span className="font-semibold text-xs">
                     {credit.certification}
                   </span>
                 </div>
@@ -664,21 +629,19 @@ const CarbonMarketplace: React.FC = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <h3 className="text-xl font-bold dark:text-white mb-4">
-              Purchase Carbon Credits
-            </h3>
+            <h3 className="text-xl font-bold mb-4">Purchase Carbon Credits</h3>
             <div className="mb-4">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <p className="text-sm text-gray-600 mb-2">
                 Project: {selectedCredit.projectName}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <p className="text-sm text-gray-600 mb-2">
                 Price per ton: ${selectedCredit.pricePerTon}
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-gray-600 mb-4">
                 Available: {selectedCredit.amount} tons
               </p>
 
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Amount to purchase (tons):
               </label>
               <input
@@ -700,19 +663,19 @@ const CarbonMarketplace: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
 
-              <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 rounded-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                <p className="text-sm text-gray-600">
                   Total Cost:{" "}
-                  <span className="font-bold text-green-600 dark:text-green-400">
+                  <span className="font-bold text-green-600">
                     $
                     {(
                       purchaseAmount * selectedCredit.pricePerTon
                     ).toLocaleString()}
                   </span>
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600">
                   CO2 Offset:{" "}
-                  <span className="font-bold text-green-600 dark:text-green-400">
+                  <span className="font-bold text-green-600">
                     {purchaseAmount} tons
                   </span>
                 </p>
@@ -722,7 +685,7 @@ const CarbonMarketplace: React.FC = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowPurchaseModal(false)}
-                className="flex-1 px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                className="flex-1 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
                 Cancel
               </button>
@@ -739,7 +702,7 @@ const CarbonMarketplace: React.FC = () => {
 
       {filteredCredits.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500 dark:text-gray-400 text-lg">
+          <p className="text-gray-500 text-lg">
             No carbon credits found matching your criteria.
           </p>
         </div>
