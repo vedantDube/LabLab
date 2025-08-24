@@ -236,7 +236,7 @@ class CarbonTwinCore:
                 "next_steps": ["Retry verification", "Manual audit required"]
             }
 
-    async def create_digital_twin_with_ai(self, facility_data: Dict) -> Dict:
+    def create_digital_twin_with_ai(self, facility_data: Dict) -> Dict:
         """Create digital twin with AI-powered analysis"""
         
         twin_prompt = f"""
@@ -312,7 +312,7 @@ class CarbonTwinCore:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",  # Use gpt-4 as placeholder for chatgpt-5
                 messages=[
                     {"role": "system", "content": "You are an expert in digital twin technology and carbon footprint modeling."},
@@ -354,7 +354,7 @@ class CarbonTwinCore:
                 "confidence_score": 25
             }
 
-    async def simulate_scenarios_with_ai(self, twin_id: str, scenarios: List[Dict]) -> Dict:
+    def simulate_scenarios_with_ai(self, twin_id: str, scenarios: List[Dict]) -> Dict:
         """Simulate carbon optimization scenarios using AI"""
         
         # Get twin data
@@ -460,7 +460,7 @@ class CarbonTwinCore:
         """
         
         try:
-            response = await openai.ChatCompletion.acreate(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",  # Use gpt-4 as placeholder for chatgpt-5
                 messages=[
                     {"role": "system", "content": "You are an expert in carbon management and operational optimization."},
@@ -608,11 +608,11 @@ def verify_emission():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/create-twin', methods=['POST'])
-async def create_twin():
+def create_twin():
     """Create digital twin with AI analysis"""
     try:
         facility_data = request.get_json()
-        twin_result = await carbon_twin.create_digital_twin_with_ai(facility_data)
+        twin_result = carbon_twin.create_digital_twin_with_ai(facility_data)
         return jsonify(twin_result)
         
     except Exception as e:
@@ -620,11 +620,11 @@ async def create_twin():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/simulate/<twin_id>', methods=['POST'])
-async def simulate_scenarios(twin_id):
+def simulate_scenarios(twin_id):
     """Simulate optimization scenarios"""
     try:
         scenarios = request.get_json().get('scenarios', [])
-        simulation_result = await carbon_twin.simulate_scenarios_with_ai(twin_id, scenarios)
+        simulation_result = carbon_twin.simulate_scenarios_with_ai(twin_id, scenarios)
         return jsonify(simulation_result)
         
     except Exception as e:
@@ -806,7 +806,7 @@ def get_marketplace_stats():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/marketplace/purchase', methods=['POST'])
-async def purchase_carbon_credits():
+def purchase_carbon_credits():
     """Purchase carbon credits - integrate with blockchain"""
     try:
         data = request.get_json()
@@ -884,7 +884,7 @@ async def purchase_carbon_credits():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/marketplace/verify-project', methods=['POST'])
-async def verify_carbon_project():
+def verify_carbon_project():
     """Verify carbon project using ChatGPT-5"""
     try:
         project_data = request.get_json()
@@ -965,7 +965,7 @@ async def verify_carbon_project():
         """
         
         if openai:
-            response = await openai.ChatCompletion.acreate(
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "You are an expert carbon project auditor with extensive knowledge of carbon standards and methodologies."},
