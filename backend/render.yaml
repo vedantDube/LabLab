@@ -1,11 +1,11 @@
 # Render Deploy Configuration
 # This file is used by Render to configure the deployment
 
-# Build Command
-pip install -r requirements.txt
+# Build Command - Install dependencies with specific Python version
+pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
 
-# Start Command  
-python app.py
+# Start Command - Use Gunicorn for production
+gunicorn --config gunicorn.conf.py app:app
 
 # Environment
-PYTHON_VERSION=3.12
+PYTHON_VERSION=3.11.9

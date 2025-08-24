@@ -562,6 +562,15 @@ def index():
         ]
     })
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for deployment"""
+    return jsonify({
+        "status": "healthy",
+        "service": "CarbonTwin API",
+        "timestamp": datetime.now().isoformat()
+    })
+
 @app.route('/api/verify-emission', methods=['POST'])
 async def verify_emission():
     """Verify emission report using ChatGPT-5"""
